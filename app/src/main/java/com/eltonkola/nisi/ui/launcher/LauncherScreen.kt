@@ -1,5 +1,9 @@
-package com.eltonkola.nisi.ui
+package com.eltonkola.nisi.ui.launcher
 
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,25 +26,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Text
 import com.eltonkola.nisi.R
 import com.eltonkola.nisi.model.App
 import com.eltonkola.nisi.ui.theme.NisiTheme
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun LauncherScreen(viewModel: LauncherViewModel = viewModel()) { // Provide default for previews
+fun LauncherScreen(
+    viewModel: LauncherViewModel = viewModel(),
+    navController: NavHostController = rememberNavController()
+) {
 
     val context = LocalContext.current
     val apps by viewModel.apps // Observe the apps state
@@ -97,13 +101,12 @@ fun LauncherScreen(viewModel: LauncherViewModel = viewModel()) { // Provide defa
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // 4. Tabs (using BottomTab data)
-                    HomeSectionTabs()
+                    HomeSectionTabs(navController)
                 }
             }
         }
 
 }
-
 
 
 @OptIn(ExperimentalTvMaterial3Api::class)

@@ -1,4 +1,4 @@
-package com.eltonkola.nisi.ui
+package com.eltonkola.nisi.ui.launcher
 
 import androidx.lifecycle.ViewModel
 

@@ -1,6 +1,7 @@
-package com.eltonkola.nisi.ui
+package com.eltonkola.nisi.ui.launcher
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -51,7 +52,7 @@ fun AppItemUi(
     ) {
 
         if (app.icon != null) {
-            androidx.compose.foundation.Image(
+            Image(
                 bitmap = app.icon,
                 contentDescription = app.name,
                 modifier = Modifier.fillMaxSize(),

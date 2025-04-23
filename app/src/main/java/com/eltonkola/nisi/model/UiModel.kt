@@ -11,5 +11,6 @@ data class App(
 
 data class BottomTab(
     val name: String,
-    val icon: ImageVector // Added icon based on your definition
+    val icon: ImageVector,
+    val action: () -> Unit
 )
