@@ -1,8 +1,30 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
+
+// Function to safely load properties from local.properties
+fun getApiKey(project: Project, propertyName: String): String {
+    val localPropertiesFile = project.rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        val properties = Properties()
+        FileInputStream(localPropertiesFile).use { fis ->
+            properties.load(fis)
+        }
+        // Return property value or an empty string if not found
+        // The quotes are expected to be part of the value in local.properties
+        return properties.getProperty(propertyName, "\"\"")
+    }
+    // Fallback for CI: Read from environment variable if local.properties doesn't exist or key missing
+    // Gradle automatically makes environment variables available as project properties
+    // Note: env var names often match property names, but can be different if mapped in CI
+    return project.findProperty(propertyName)?.toString() ?: "\"\"" // Default to empty string literal if not found anywhere
+}
+
 
 android {
     namespace = "com.eltonkola.nisi"
@@ -14,6 +36,12 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        val pexelsKey = getApiKey(project, "PEXELS_API_KEY")
+        val weatherKey = getApiKey(project, "OPENWEATHERMAP_API_KEY")
+
+        buildConfigField("String", "PEXELS_API_KEY", pexelsKey)
+        buildConfigField("String", "OPENWEATHERMAP_API_KEY", weatherKey)
 
     }
 
@@ -35,6 +63,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -50,6 +79,8 @@ dependencies {
     implementation(libs.androidx.tv.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
+    implementation(libs.androidx.material3)
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 

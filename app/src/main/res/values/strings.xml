@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Nisi</string>
+    <string name="accessibility_service_description">Enable this service to use this app as your home launcher. This service detects when the home button is pressed and opens this launcher.</string>
+
 </resources>

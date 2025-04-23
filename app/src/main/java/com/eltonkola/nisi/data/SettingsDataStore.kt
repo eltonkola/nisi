@@ -22,18 +22,13 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 class SettingsDataStore(private val context: Context) {
 
-    // --- Default Values --- (Keep your default API key here)
-    companion object {
-        const val DEFAULT_API_KEY = "0d6dc9d9d79f274b61968924144a469a" // Your default key
-        const val DEFAULT_LOCATION = "London" // Default city
-    }
 
     // --- Read Preferences ---
 
     // Flow to observe location changes
     val locationFlow: Flow<String> = context.dataStore.data
         .map { preferences ->
-            preferences[PrefKeys.LOCATION] ?: DEFAULT_LOCATION // Provide default if null
+            preferences[PrefKeys.LOCATION] ?: "" // Provide default if null
         }
 
     // Flow to observe custom API key changes
@@ -45,7 +40,7 @@ class SettingsDataStore(private val context: Context) {
     // Combined flow for convenience (optional)
     val settingsFlow: Flow<Pair<String, String?>> = context.dataStore.data
         .map { preferences ->
-            val location = preferences[PrefKeys.LOCATION] ?: DEFAULT_LOCATION
+            val location = preferences[PrefKeys.LOCATION] ?: ""
             val apiKey = preferences[PrefKeys.API_KEY] // Nullable
             Pair(location, apiKey)
         }

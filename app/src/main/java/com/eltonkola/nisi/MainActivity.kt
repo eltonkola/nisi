@@ -6,12 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Surface
 import com.eltonkola.nisi.ui.NisiLauncher
-import com.eltonkola.nisi.ui.launcher.LauncherScreen
-import com.eltonkola.nisi.ui.launcher.LauncherViewModel
 import com.eltonkola.nisi.ui.theme.NisiTheme
 
 class MainActivity : ComponentActivity() {

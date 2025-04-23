@@ -30,6 +30,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.eltonkola.nisi.BuildConfig
 import com.eltonkola.nisi.data.SettingsDataStore
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -154,7 +155,7 @@ class WeatherViewModel(
     // Read settings from DataStore and store them as StateFlow
     @OptIn(ExperimentalCoroutinesApi::class) // For mapLatest
     private val settings: StateFlow<Pair<String, String?>> = settingsDataStore.settingsFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Pair(SettingsDataStore.DEFAULT_LOCATION, null))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Pair( "??", null))
 
     init {
         // Observe settings changes and trigger weather fetch automatically
@@ -179,7 +180,7 @@ class WeatherViewModel(
             val (currentLocation, customApiKey) = settings.value // Get latest settings
 
             // Use custom API key if provided, otherwise use the default compile-time key
-            val apiKeyToUse = if (!customApiKey.isNullOrBlank()) customApiKey else SettingsDataStore.DEFAULT_API_KEY
+            val apiKeyToUse = if (!customApiKey.isNullOrBlank()) customApiKey else BuildConfig.OPENWEATHERMAP_API_KEY
 
             if (currentLocation.isBlank()) {
                 _error.value = "Location not set."
