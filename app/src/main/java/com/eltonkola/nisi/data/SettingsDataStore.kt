@@ -4,6 +4,7 @@ import android.content.Context
 import android.location.Geocoder
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,11 +21,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import javax.inject.Inject
+import javax.inject.Singleton
 
 object PrefKeys {
     val LOCATION_LAT = stringPreferencesKey("location_lat")
     val LOCATION_LON = stringPreferencesKey("location_lon")
     val LOCATION_CITY = stringPreferencesKey("location_city")
+    val WEATHER_METRIC = booleanPreferencesKey("weather_metric")
     val API_KEY = stringPreferencesKey("openweathermap_api_key")
     val PIN = stringPreferencesKey("pin")
 }
@@ -34,7 +38,8 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 data class AppSettings(
     val location: Location? = null,
     val weatherApiKey: String? = null,
-    val pin: String? = null
+    val pin: String? = null,
+    val weatherMetric: Boolean = false
 ){
     data class Location(
         val latitude: String,
@@ -44,7 +49,10 @@ data class AppSettings(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-class SettingsDataStore(private val context: Context) {
+@Singleton
+class SettingsDataStore @Inject constructor(
+    private val appContext: Context
+) {
 
     private val _settingsState = MutableStateFlow(AppSettings())
     val settingsState: StateFlow<AppSettings> = _settingsState.asStateFlow()
@@ -56,7 +64,7 @@ class SettingsDataStore(private val context: Context) {
     }
 
     private fun observeSettings() {
-        context.dataStore.data.map { preferences ->
+        appContext.dataStore.data.map { preferences ->
             AppSettings(
                 location = if (preferences.contains(PrefKeys.LOCATION_LAT)) {
                     AppSettings.Location(
@@ -66,17 +74,18 @@ class SettingsDataStore(private val context: Context) {
                     )
                 } else null,
                 weatherApiKey = preferences[PrefKeys.API_KEY] ?: BuildConfig.OPENWEATHERMAP_API_KEY,
-                pin = preferences[PrefKeys.PIN]
+                pin = preferences[PrefKeys.PIN],
+                weatherMetric = preferences[PrefKeys.WEATHER_METRIC] == true
             )
         }.onEach { settings ->
             _settingsState.value = settings
         }.launchIn(GlobalScope) // Or another appropriate scope
     }
 
-    val geocoder = Geocoder(context, Locale.getDefault())
+    val geocoder = Geocoder(appContext, Locale.getDefault())
 
     suspend fun saveLocation(latitude: String, longitude: String) {
-        context.dataStore.edit { settings ->
+        appContext.dataStore.edit { settings ->
             settings[PrefKeys.LOCATION_LAT] = latitude
             settings[PrefKeys.LOCATION_LON] = longitude
             settings[PrefKeys.LOCATION_CITY] = getCityNameFromLocation(latitude, longitude)
@@ -101,7 +110,7 @@ class SettingsDataStore(private val context: Context) {
 
 
     suspend fun saveWeatherApiKey(apiKey: String?) {
-        context.dataStore.edit { settings ->
+        appContext.dataStore.edit { settings ->
             if(apiKey.isNullOrBlank()){
                 settings.remove(PrefKeys.API_KEY)
             }else{
@@ -111,12 +120,18 @@ class SettingsDataStore(private val context: Context) {
     }
 
     suspend fun savePin(pin: String?) {
-        context.dataStore.edit { settings ->
+        appContext.dataStore.edit { settings ->
             if(pin.isNullOrBlank()){
                 settings.remove(PrefKeys.PIN)
             }else{
                 settings[PrefKeys.PIN] = pin
             }
+        }
+    }
+
+    suspend fun saveWeatherMetric(metric: Boolean) {
+        appContext.dataStore.edit { settings ->
+            settings[PrefKeys.WEATHER_METRIC] = metric
         }
     }
 

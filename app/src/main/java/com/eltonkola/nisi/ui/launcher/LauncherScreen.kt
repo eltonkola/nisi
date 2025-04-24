@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -27,27 +27,26 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.eltonkola.nisi.R
 import com.eltonkola.nisi.model.App
 import com.eltonkola.nisi.ui.theme.NisiTheme
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.eltonkola.nisi.ui.launcher.widgets.ClockWidget
+import com.eltonkola.nisi.ui.launcher.widgets.weather.WeatherWidget
+
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun LauncherScreen(
-    viewModel: LauncherViewModel = viewModel(),
+    viewModel: LauncherViewModel = hiltViewModel(),
     navController: NavHostController = rememberNavController()
 ) {
 
     val context = LocalContext.current
-    val apps by viewModel.apps // Observe the apps state
-
-    LaunchedEffect(Unit) {
-        viewModel.loadInstalledApps(context)
-    }
+    val apps by viewModel.apps.collectAsState()
 
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -128,12 +127,6 @@ fun AppIconRow(
             }
 
         }
-}
-
-@Preview(device = "id:tv_1080p")
-@Composable
-fun LauncherScreenPreview() {
-    LauncherScreen(viewModel = LauncherViewModel()) // Basic preview with default ViewModel
 }
 
 @Preview

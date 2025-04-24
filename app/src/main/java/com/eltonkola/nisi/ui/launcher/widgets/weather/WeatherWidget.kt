@@ -1,13 +1,13 @@
-package com.eltonkola.nisi.ui.launcher
+package com.eltonkola.nisi.ui.launcher.widgets.weather
 
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,9 +47,31 @@ import iconSunset
 import iconWind
 import java.text.SimpleDateFormat
 import androidx.compose.ui.text.TextStyle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.eltonkola.nisi.BuildConfig
+import com.eltonkola.nisi.data.AppSettings
 import com.eltonkola.nisi.data.SettingsDataStore
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -150,7 +172,7 @@ fun WeatherDisplay(
                 Text(
                     text = "${weatherData.name}, $weatherTxt , Feels like ${weatherData.main.feelsLike.roundToInt()}°C",
                     style = textStyle.copy(
-                        fontSize = 24.sp, // Slightly smaller than main time
+                        fontSize = 20.sp, // Slightly smaller than main time
                         fontWeight = FontWeight.Medium
                     ),
                     maxLines = 1
@@ -358,3 +380,4 @@ fun WeatherDisplayPreview_Success() {
         WeatherDisplay(weatherData = previewWeatherData)
     }
 }
+

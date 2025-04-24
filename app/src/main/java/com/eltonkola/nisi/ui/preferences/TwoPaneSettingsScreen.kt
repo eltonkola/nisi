@@ -29,10 +29,8 @@ import androidx.tv.material3.ListItem
 import androidx.tv.material3.ListItemDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
-import com.eltonkola.nisi.data.SettingsDataStore
 import gridIcon
 import homeIcon
-import iconFixedLocation
 import imageIcon
 import infoIcon
 import lockIcon
@@ -40,8 +38,6 @@ import weatherIcon
 
 
 enum class SettingsSection(val title: String, val icon: ImageVector) {
-
-    Location("Location", iconFixedLocation),
     WEATHER("Weather", weatherIcon),
     ACCESSIBILITY("Accessibility", homeIcon),
     PIN("PIN Lock", lockIcon),
@@ -52,9 +48,7 @@ enum class SettingsSection(val title: String, val icon: ImageVector) {
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalTvFoundationApi::class)
 @Composable
-fun TwoPaneSettingsScreen(
-    settingsDataStore: SettingsDataStore
-) {
+fun TwoPaneSettingsScreen() {
     var selectedSection by remember { mutableStateOf(SettingsSection.WEATHER) } // Start with Weather
 
     Row(
@@ -62,7 +56,6 @@ fun TwoPaneSettingsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface) // Use theme background
     ) {
-        // --- Left Navigation Pane ---
         NavigationPane(
             sections = SettingsSection.entries.toList(), // Get all enum values
             selectedSection = selectedSection,
@@ -73,10 +66,8 @@ fun TwoPaneSettingsScreen(
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)) // Slightly different background
         )
 
-        // --- Right Content Pane ---
         ContentPane(
             selectedSection = selectedSection,
-            settingsDataStore = settingsDataStore,
             modifier = Modifier
                 .weight(0.7f) // Adjust weight as needed (e.g., 70%)
                 .fillMaxHeight()
@@ -138,13 +129,11 @@ private fun NavigationPane(
 @Composable
 private fun ContentPane(
     selectedSection: SettingsSection,
-    settingsDataStore: SettingsDataStore,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         when (selectedSection) {
-            SettingsSection.Location -> LocationSettingsSection(settingsDataStore)
-            SettingsSection.WEATHER -> WeatherSettingsSection(settingsDataStore)
+            SettingsSection.WEATHER -> WeatherSettingsSection()
             SettingsSection.APPS -> AppsSettingsSection()
             SettingsSection.WALLPAPER -> WallpaperSettingsSection()
             SettingsSection.ABOUT -> AboutSettingsSection()
