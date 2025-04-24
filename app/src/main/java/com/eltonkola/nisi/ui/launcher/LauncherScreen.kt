@@ -76,13 +76,15 @@ fun LauncherScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 32.dp),
+                    .padding(bottom = 16.dp),
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(64.dp))
-                // 2. Center Clock and Weather (Placeholder)
-                ClockWeatherWidget() // Keep this as is for now
+                Spacer(modifier = Modifier.height(22.dp))
+
+                ClockWidget(modifier = Modifier)
+                WeatherWidget(modifier = Modifier)
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -139,7 +141,7 @@ fun LauncherScreenPreview() {
 fun ClockWeatherWidgetPreview() {
     NisiTheme {
         Box(Modifier.background(Color.DarkGray).padding(16.dp)) {
-            ClockWeatherWidget()
+            ClockWidget()
         }
     }
 }

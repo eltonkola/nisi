@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,7 +48,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -57,7 +55,11 @@ import java.util.Locale
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun ClockWeatherWidget() {
+fun ClockWidget(
+    modifier: Modifier = Modifier
+) {
+
+    val context = LocalContext.current
 
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
@@ -68,25 +70,14 @@ fun ClockWeatherWidget() {
         }
     }
 
+
     val dateFormat = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     val date = dateFormat.format(Date(currentTime))
     val time = timeFormat.format(Date(currentTime))
 
-
-    val context = LocalContext.current
-    val settingsDataStore = remember { SettingsDataStore(context.applicationContext) }
-
-    val weatherViewModel: WeatherViewModel = viewModel (
-        factory = WeatherViewModelFactory(settingsDataStore) // Use Factory
-    )
-
-    val weatherState by weatherViewModel.weatherData.collectAsState()
-    val weatherError by weatherViewModel.error.collectAsState()
-    val isLoading by weatherViewModel.isLoading.collectAsState()
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
 
         Text(
             text = date,
@@ -104,47 +95,6 @@ fun ClockWeatherWidget() {
                 shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 8f)
             )
         )
-
-        Spacer(modifier = Modifier.height(2.dp))
-         when {
-            isLoading -> {
-                CircularProgressIndicator()
-            }
-            weatherError != null -> {
-                Text(
-                    text =  "Weather unavailable",
-                    style = TextStyle(
-                        fontSize = 24.sp, color = Color.White,
-                        shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)
-                    )
-                )
-            }
-            weatherState != null -> {
-                WeatherDisplay(
-                    weatherData = weatherState!!
-                )
-
-            }
-            else -> {
-                Text(
-                    text =  "Weather unavailable",
-                    style = TextStyle(
-                        fontSize = 24.sp, color = Color.White,
-                        shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)
-                    )
-                )
-            }
-        }
-
-
-
-
-
-
-
-
-
-
 
     }
 }
@@ -182,11 +132,7 @@ class WeatherViewModel(
                 .distinctUntilChanged()
                 .collectLatest { settings ->
                     if (settings.location !=null ) {
-                        fetchWeather(
-                            settings.location.latitude,
-                            settings.location.longitude,
-                            settings.weatherApiKey ?: BuildConfig.OPENWEATHERMAP_API_KEY
-                        )
+                        fetchWeather()
                     }else{
                         _error.value = "Location not set."
                         _isLoading.value = false
@@ -195,10 +141,14 @@ class WeatherViewModel(
         }
     }
 
-    fun fetchWeather(lat: String, lon: String, apiKey: String) {
+    fun fetchWeather() {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+            val settings = settingsDataStore.settingsState.value
+            val lat = settings.location?.latitude ?: ""
+            val lon = settings.location?.longitude ?: ""
+            val apiKey = settings.weatherApiKey ?: BuildConfig.OPENWEATHERMAP_API_KEY
 
             try {
                 val url = "$BASE_URL?lat=$lat&lon=$lon&appid=$apiKey&units=metric"
