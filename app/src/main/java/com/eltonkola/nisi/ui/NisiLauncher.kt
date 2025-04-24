@@ -33,13 +33,6 @@ fun NisiLauncher(
 
     val context = LocalContext.current
 
-    var isHome by remember(context) { mutableStateOf(isAccessibilityServiceEnabled(context)) }
-
-    LaunchedEffect(key1 = isHome) {
-        if(!isHome){
-            promptEnableAccessibilityService(context)
-        }
-    }
 
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screen.Main.route) {

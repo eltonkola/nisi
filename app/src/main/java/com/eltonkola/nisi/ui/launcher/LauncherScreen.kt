@@ -1,9 +1,5 @@
 package com.eltonkola.nisi.ui.launcher
 
-import android.content.Context
-import android.content.Intent
-import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

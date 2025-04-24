@@ -24,23 +24,21 @@ import androidx.tv.material3.Text
 import com.eltonkola.nisi.data.SettingsDataStore
 import kotlinx.coroutines.launch
 
-
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalTvMaterial3Api::class) // TextField is M3
 @RequiresPermission(anyOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
 @Composable
 fun WeatherSettingsSection(settingsDataStore: SettingsDataStore) {
     val scope = rememberCoroutineScope()
 
-    val currentApiKey by settingsDataStore.customApiKeyFlow.collectAsState(initial = null)
+    val appSettings by settingsDataStore.settingsState.collectAsState()
 
-    var apiKeyInput by remember(currentApiKey) { mutableStateOf(currentApiKey ?: "") }
+    var apiKeyInput by remember(appSettings) { mutableStateOf(appSettings.weatherApiKey ?: "") }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Weather Settings", style = MaterialTheme.typography.headlineMedium)
 
         Text("Enter your own private OpenWeatherMap key, you can get a free one at https://api.openweathermap.org", style = MaterialTheme.typography.bodyMedium)
 
-        // API Key Input
         OutlinedTextField(
             value = apiKeyInput,
             onValueChange = { apiKeyInput = it },
@@ -52,20 +50,18 @@ fun WeatherSettingsSection(settingsDataStore: SettingsDataStore) {
                 unfocusedTextColor = LocalContentColor.current,
                 cursorColor = LocalContentColor.current,
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
-                // unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 focusedLabelColor = MaterialTheme.colorScheme.primary,
                 unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         )
 
-
         Button(
             onClick = {
                 scope.launch {
-                    settingsDataStore.saveApiKey(apiKeyInput.trim())
+                    settingsDataStore.saveWeatherApiKey(apiKeyInput.trim())
                 }
             },
-            enabled = apiKeyInput != (currentApiKey ?: "")
+            enabled = apiKeyInput != (appSettings.weatherApiKey ?: "")
         ) {
             Text("Save Custom Api Key")
         }

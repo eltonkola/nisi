@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,18 +22,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Text
-import kotlinx.coroutines.delay
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Text
 import com.eltonkola.nisi.BuildConfig
+import com.eltonkola.nisi.data.AppSettings
 import com.eltonkola.nisi.data.SettingsDataStore
+import com.eltonkola.nisi.model.WeatherResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -39,6 +39,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +50,10 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -81,17 +86,6 @@ fun ClockWeatherWidget() {
     val weatherError by weatherViewModel.error.collectAsState()
     val isLoading by weatherViewModel.isLoading.collectAsState()
 
-    val weatherText = when {
-        isLoading -> "Loading weather..."
-        weatherError != null -> "Weather unavailable"
-        weatherState != null -> {
-            val temp = weatherState!!.main.temp.toInt()
-            val description = weatherState!!.weather.firstOrNull()?.description?.replaceFirstChar { it.uppercase() } ?: "Weather"
-            "$description, $temp°C" + " (${weatherState!!.name})"
-        }
-        else -> "Weather unavailable"
-    }
-
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
         Text(
@@ -111,37 +105,63 @@ fun ClockWeatherWidget() {
             )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = weatherText,
-            style = TextStyle(
-                fontSize = 24.sp, color = Color.White,
-                shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)
-            )
-        )
+        Spacer(modifier = Modifier.height(2.dp))
+         when {
+            isLoading -> {
+                CircularProgressIndicator()
+            }
+            weatherError != null -> {
+                Text(
+                    text =  "Weather unavailable",
+                    style = TextStyle(
+                        fontSize = 24.sp, color = Color.White,
+                        shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)
+                    )
+                )
+            }
+            weatherState != null -> {
+                WeatherDisplay(
+                    weatherData = weatherState!!
+                )
+
+            }
+            else -> {
+                Text(
+                    text =  "Weather unavailable",
+                    style = TextStyle(
+                        fontSize = 24.sp, color = Color.White,
+                        shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)
+                    )
+                )
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
     }
 }
 
 private const val BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
-@Serializable
-data class WeatherResponse(
-    val name: String, // City name
-    val main: MainWeatherData,
-    val weather: List<WeatherCondition>
-)
 
-@Serializable
-data class MainWeatherData(val temp: Float, val humidity: Int)
-
-@Serializable
-data class WeatherCondition(val main: String, val description: String)
-
+@OptIn(ExperimentalCoroutinesApi::class)
 class WeatherViewModel(
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
     private val client = HttpClient {
-        install(ContentNegotiation) { json() }
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+            })
+        }
     }
     private val _weatherData = MutableStateFlow<WeatherResponse?>(null)
     val weatherData: StateFlow<WeatherResponse?> = _weatherData.asStateFlow() // Expose as StateFlow
@@ -152,50 +172,36 @@ class WeatherViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Read settings from DataStore and store them as StateFlow
-    @OptIn(ExperimentalCoroutinesApi::class) // For mapLatest
-    private val settings: StateFlow<Pair<String, String?>> = settingsDataStore.settingsFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Pair( "??", null))
+    private val settings: StateFlow<AppSettings> = settingsDataStore.settingsState
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppSettings())
 
     init {
-        // Observe settings changes and trigger weather fetch automatically
+        //TODO - reload weather every one hour
         viewModelScope.launch {
-            settings.mapLatest { (location, _) -> location } // Only react to location changes here for fetch trigger
-                .distinctUntilChanged() // Avoid fetching if location hasn't changed
-                .collectLatest { location -> // Use collectLatest to cancel previous fetch if location changes quickly
-                    if (location.isNotBlank()) { // Don't fetch if location is somehow blank
-                        fetchWeather()
+            settings.mapLatest { it}
+                .distinctUntilChanged()
+                .collectLatest { settings ->
+                    if (settings.location !=null ) {
+                        fetchWeather(
+                            settings.location.latitude,
+                            settings.location.longitude,
+                            settings.weatherApiKey ?: BuildConfig.OPENWEATHERMAP_API_KEY
+                        )
+                    }else{
+                        _error.value = "Location not set."
+                        _isLoading.value = false
                     }
                 }
         }
-        // Fetch initial weather
-        // fetchWeather() // Fetch is triggered by the collector above now
     }
 
-    // Fetch weather using the current settings from the 'settings' StateFlow
-    fun fetchWeather() {
+    fun fetchWeather(lat: String, lon: String, apiKey: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            _error.value = null // Clear previous error
-            val (currentLocation, customApiKey) = settings.value // Get latest settings
-
-            // Use custom API key if provided, otherwise use the default compile-time key
-            val apiKeyToUse = if (!customApiKey.isNullOrBlank()) customApiKey else BuildConfig.OPENWEATHERMAP_API_KEY
-
-            if (currentLocation.isBlank()) {
-                _error.value = "Location not set."
-                _isLoading.value = false
-                return@launch
-            }
-            if (apiKeyToUse.isBlank()) {
-                _error.value = "API Key not available."
-                _isLoading.value = false
-                return@launch
-            }
-
+            _error.value = null
 
             try {
-                val url = "$BASE_URL?q=$currentLocation&appid=$apiKeyToUse&units=metric"
+                val url = "$BASE_URL?lat=$lat&lon=$lon&appid=$apiKey&units=metric"
                 Log.d("WeatherViewModel", "Fetching weather: $url") // Use Logcat
 
                 val response: HttpResponse = client.get(url)
@@ -205,12 +211,12 @@ class WeatherViewModel(
                     _error.value = null
                 } else {
                     _error.value = "Error fetching weather: ${response.status.value} ${response.status.description}"
-                    _weatherData.value = null // Clear stale data on error
+                    _weatherData.value = null
                     Log.e("WeatherViewModel", "HTTP Error: ${response.status.value} - ${response.body<String>()}")
                 }
             } catch (e: Exception) {
                 _error.value = "Failed to fetch weather: ${e.message}"
-                _weatherData.value = null // Clear stale data on error
+                _weatherData.value = null
                 Log.e("WeatherViewModel", "Exception fetching weather", e)
             } finally {
                 _isLoading.value = false
@@ -220,7 +226,7 @@ class WeatherViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        client.close() // Close Ktor client when ViewModel is destroyed
+        client.close()
     }
 }
 
@@ -233,4 +239,3 @@ class WeatherViewModelFactory(private val settingsDataStore: SettingsDataStore) 
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-

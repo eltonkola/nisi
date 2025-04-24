@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="Nisi.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-04-22T22:36:40.496068600Z">
+        <DropdownSelection timestamp="2025-04-23T23:37:43.183479300Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\test\.android\avd\Television_1080p_API_34.avd" />
