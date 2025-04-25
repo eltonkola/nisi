@@ -8,6 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,9 +19,11 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,8 +33,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Tab
 import androidx.tv.material3.TabRow
+import androidx.tv.material3.TabRowDefaults
 import androidx.tv.material3.Text
 import com.eltonkola.nisi.data.model.BottomTab
 import com.eltonkola.nisi.ui.Screen
@@ -68,35 +74,57 @@ fun HomeSectionTabs(
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
-    TabRow(selectedTabIndex = selectedTabIndex, modifier = Modifier.focusRestorer()) {
-        tabs.forEachIndexed { index, tab ->
-            key(index) {
-                Tab(
-                    selected = index == selectedTabIndex,
-                    onFocus = { selectedTabIndex = index },
-                    onClick = { tab.action() }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    ) {
-                        Icon(
-                            imageVector = tab.icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = tab.name,
-                            fontSize = 14.sp,
-                            maxLines = 1
-                        )
-                    }
+    Box(
+        modifier = Modifier.fillMaxWidth().height(46.dp),
+        contentAlignment = Alignment.Center
+    ) {
 
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f))
+                    )
+                )
+        )
+
+
+        TabRow(
+            containerColor = TabRowDefaults.ContainerColor,
+            contentColor  = MaterialTheme.colorScheme.onPrimary,
+
+        selectedTabIndex = selectedTabIndex,
+            modifier = Modifier.focusRestorer()
+        ) {
+            tabs.forEachIndexed { index, tab ->
+                key(index) {
+                    Tab(
+                        selected = index == selectedTabIndex,
+                        onFocus = { selectedTabIndex = index },
+                        onClick = { tab.action() }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        ) {
+                            Icon(
+                                imageVector = tab.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = tab.name,
+                                fontSize = 14.sp,
+                                maxLines = 1
+                            )
+                        }
+
+                    }
                 }
             }
         }
     }
-
 }
 
 fun Context.openSettings() {

@@ -58,6 +58,7 @@ class HomeButtonAccessibilityService : AccessibilityService() {
 
             // Launch our launcher activity
             handler.post {
+                Log.d(">>>>> HomeButtonAccessibilityService", "Launching main activity")
                 val intent = Intent(applicationContext, MainActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 intent.addCategory(Intent.CATEGORY_HOME)
@@ -86,24 +87,6 @@ fun promptEnableAccessibilityService(context: Context) {
         .setNegativeButton("Cancel", null)
         .show()
 }
-
-
-//
-//fun isAccessibilityServiceEnabled(context: Context): Boolean {
-//    val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-//    val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
-//
-//    val myServiceName = ComponentName(context, HomeButtonAccessibilityService::class.java).flattenToString()
-//
-//    for (service in enabledServices) {
-//        val serviceId = service.id
-//        if (serviceId.contains(myServiceName)) {
-//            return true
-//        }
-//    }
-//
-//    return false
-//}
 
 /**
  * Checks if a specific Accessibility Service is enabled in the system settings.

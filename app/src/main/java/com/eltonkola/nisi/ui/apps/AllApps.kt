@@ -53,7 +53,7 @@ fun AllApps(
 
             uiState.error != null -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().padding(48.dp),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -73,7 +73,6 @@ fun AllApps(
                 )
             }
 
-
         }
     }
 
@@ -87,7 +86,7 @@ fun AppGrid(
     openApp: (String) -> Unit
 ) {
 
-    Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Box(modifier = Modifier.fillMaxSize()) {
 
         val context = LocalContext.current
 

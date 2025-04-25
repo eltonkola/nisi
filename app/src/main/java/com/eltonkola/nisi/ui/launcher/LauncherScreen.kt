@@ -127,8 +127,7 @@ private fun LauncherMainUi(
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 16.dp),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

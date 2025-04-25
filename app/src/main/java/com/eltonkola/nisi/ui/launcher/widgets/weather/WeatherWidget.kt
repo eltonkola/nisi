@@ -88,7 +88,7 @@ fun WeatherWidget(
                 Text(
                     text = "Weather unavailable",
                     style = TextStyle(
-                        fontSize = 24.sp, color = Color.White,
+                        fontSize = 24.sp, color =  MaterialTheme.colorScheme.onPrimary,
                         shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)
                     )
                 )
@@ -105,7 +105,7 @@ fun WeatherWidget(
                 Text(
                     text = "Weather unavailable",
                     style = TextStyle(
-                        fontSize = 24.sp, color = Color.White,
+                        fontSize = 24.sp, color =  MaterialTheme.colorScheme.onPrimary,
                         shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)
                     )
                 )
@@ -123,9 +123,10 @@ fun WeatherDisplay(
     weatherData: WeatherResponse
 ) {
 
+    val color = MaterialTheme.colorScheme.onPrimary
     val textStyle = remember {
         TextStyle(
-            color = Color.White,
+            color = color ,
             shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)
         )
     }
@@ -218,7 +219,8 @@ fun MinMax(weatherData: WeatherResponse, textStyle: TextStyle) {
             Icon(
                 imageVector = iconChevronUp,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
+                tint =  MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
@@ -233,7 +235,8 @@ fun MinMax(weatherData: WeatherResponse, textStyle: TextStyle) {
             Icon(
                 imageVector = iconChevronDown,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
+                tint =  MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
@@ -255,7 +258,8 @@ fun SunriseSunset(weatherData: WeatherResponse, textStyle: TextStyle) {
             Icon(
                 imageVector = iconSunrise,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
+                tint =  MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
@@ -268,7 +272,8 @@ fun SunriseSunset(weatherData: WeatherResponse, textStyle: TextStyle) {
             Icon(
                 imageVector = iconSunset,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
+                tint =  MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
@@ -288,7 +293,8 @@ fun HumidityWind(weatherData: WeatherResponse, textStyle: TextStyle) {
             Icon(
                 imageVector = iconDroplet,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
+                tint =  MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
@@ -301,7 +307,8 @@ fun HumidityWind(weatherData: WeatherResponse, textStyle: TextStyle) {
             Icon(
                 imageVector = iconWind,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.size(4.dp))
             Text(
