@@ -3,7 +3,7 @@ package com.eltonkola.nisi.ui.launcher
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.eltonkola.nisi.data.AppRepository
-import com.eltonkola.nisi.model.App
+import com.eltonkola.nisi.data.model.App
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject

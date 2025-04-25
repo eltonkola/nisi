@@ -12,6 +12,7 @@ import com.eltonkola.nisi.BuildConfig
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +32,12 @@ object PrefKeys {
     val WEATHER_METRIC = booleanPreferencesKey("weather_metric")
     val API_KEY = stringPreferencesKey("openweathermap_api_key")
     val PIN = stringPreferencesKey("pin")
+
+    // Key for storing the selected wallpaper identifier (URL or Resource ID string)
+    val SELECTED_WALLPAPER_KEY = stringPreferencesKey("selected_wallpaper")
+    // Default wallpaper (replace with a valid drawable resource ID string)
+    val DEFAULT_WALLPAPER_IDENTIFIER = "drawable/offline_wallpaper_0"
+
 }
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "nisi_launcher_settings")
@@ -132,6 +139,18 @@ class SettingsDataStore @Inject constructor(
     suspend fun saveWeatherMetric(metric: Boolean) {
         appContext.dataStore.edit { settings ->
             settings[PrefKeys.WEATHER_METRIC] = metric
+        }
+    }
+
+    val selectedWallpaperIdentifierFlow: Flow<String> = appContext.dataStore.data
+        .map { preferences ->
+            preferences[PrefKeys.SELECTED_WALLPAPER_KEY] ?: PrefKeys.DEFAULT_WALLPAPER_IDENTIFIER
+        }
+
+
+    suspend fun saveSelectedWallpaperIdentifier(identifier: String) {
+        appContext.dataStore.edit { settings ->
+            settings[PrefKeys.SELECTED_WALLPAPER_KEY] = identifier
         }
     }
 

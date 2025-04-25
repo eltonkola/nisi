@@ -1,6 +1,6 @@
 package com.eltonkola.nisi.data
 
-import com.eltonkola.nisi.model.App
+import com.eltonkola.nisi.data.model.App
 import kotlinx.coroutines.flow.StateFlow
 
 interface AppRepository {

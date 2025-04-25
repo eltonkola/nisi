@@ -32,7 +32,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Tab
 import androidx.tv.material3.TabRow
 import androidx.tv.material3.Text
-import com.eltonkola.nisi.model.BottomTab
+import com.eltonkola.nisi.data.model.BottomTab
 import com.eltonkola.nisi.ui.Screen
 import com.eltonkola.nisi.ui.theme.NisiTheme
 import gridIcon

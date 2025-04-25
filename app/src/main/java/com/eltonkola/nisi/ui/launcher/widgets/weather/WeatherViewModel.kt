@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.eltonkola.nisi.BuildConfig
 import com.eltonkola.nisi.data.AppSettings
 import com.eltonkola.nisi.data.SettingsDataStore
-import com.eltonkola.nisi.model.WeatherResponse
+import com.eltonkola.nisi.data.model.WeatherResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

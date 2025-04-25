@@ -31,7 +31,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.eltonkola.nisi.R
-import com.eltonkola.nisi.model.App
+import com.eltonkola.nisi.data.model.App
 import com.eltonkola.nisi.ui.theme.NisiTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.eltonkola.nisi.ui.launcher.widgets.ClockWidget
@@ -52,7 +52,7 @@ fun LauncherScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             // 1. Background Image
             Image(
-                painter = painterResource(id = R.drawable.placeholder_background), // Replace
+                painter = painterResource(id = R.drawable.offline_wallpaper_1), // Replace
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop

@@ -10,6 +10,8 @@ import com.eltonkola.nisi.data.AppRepository
 import com.eltonkola.nisi.data.SettingsDataStore
 import com.eltonkola.nisi.data.db.AppPreferenceDao
 import com.eltonkola.nisi.data.db.AppSettingsDatabase
+import com.eltonkola.nisi.data.remote.PexelsApiService
+import com.eltonkola.nisi.data.remote.PexelsApiServiceImpl
 import com.eltonkola.nisi.data.repository.AppRepositoryImpl
 import dagger.Module
 import dagger.Provides
@@ -82,6 +84,12 @@ object AppModule {
     @Singleton
     fun provideAppRepository(@ApplicationContext appContext: Context): AppRepository {
         return AppRepositoryImpl(appContext)
+    }
+
+    @Provides
+    @Singleton
+    fun providePexelsApiService(): PexelsApiService {
+        return PexelsApiServiceImpl()
     }
 
     @Provides

@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.eltonkola.nisi.data.AppRepository
 import com.eltonkola.nisi.data.db.AppPreference
 import com.eltonkola.nisi.data.db.AppPreferenceDao
-import com.eltonkola.nisi.model.AppSettingItem
+import com.eltonkola.nisi.data.model.AppSettingItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
