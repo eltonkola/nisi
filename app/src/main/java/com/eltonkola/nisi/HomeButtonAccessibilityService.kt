@@ -6,9 +6,12 @@ import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.text.TextUtils
+import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
@@ -85,19 +88,122 @@ fun promptEnableAccessibilityService(context: Context) {
 }
 
 
+//
+//fun isAccessibilityServiceEnabled(context: Context): Boolean {
+//    val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+//    val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
+//
+//    val myServiceName = ComponentName(context, HomeButtonAccessibilityService::class.java).flattenToString()
+//
+//    for (service in enabledServices) {
+//        val serviceId = service.id
+//        if (serviceId.contains(myServiceName)) {
+//            return true
+//        }
+//    }
+//
+//    return false
+//}
 
-fun isAccessibilityServiceEnabled(context: Context): Boolean {
-    val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
-    val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC)
+/**
+ * Checks if a specific Accessibility Service is enabled in the system settings.
+ *
+ * This function uses two methods for robustness:
+ * 1. Querying AccessibilityManager (preferred, but can have caching issues).
+ * 2. Reading Settings.Secure (fallback, might not always be reliable/accessible).
+ *
+ * @param context The application context.
+ * @param serviceClass The Class object of the Accessibility Service to check (e.g., YourAccessibilityService::class.java).
+ * @return True if the service is enabled, false otherwise.
+ */
+fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<*>): Boolean {
+    val expectedComponentName = ComponentName(context, serviceClass)
+    val expectedPackageName = expectedComponentName.packageName
+    val expectedClassName = expectedComponentName.className
+    val expectedFlattenedName = expectedComponentName.flattenToString() // For Settings.Secure check
 
-    val myServiceName = ComponentName(context, HomeButtonAccessibilityService::class.java).flattenToString()
+    Log.d("AccessibilityCheck", "Checking for service: $expectedFlattenedName")
 
-    for (service in enabledServices) {
-        val serviceId = service.id
-        if (serviceId.contains(myServiceName)) {
-            return true
+    // --- Method 1: Using AccessibilityManager ---
+    try {
+        val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
+        if (accessibilityManager?.isEnabled == true) {
+            val enabledServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+            Log.d("AccessibilityCheck", "AccessibilityManager is enabled. Found ${enabledServices.size} enabled services.")
+
+            for (serviceInfo in enabledServices) {
+                val resolvedServiceInfo: ServiceInfo? = serviceInfo.resolveInfo?.serviceInfo
+                if (resolvedServiceInfo != null) {
+                    // Construct ComponentName from package and class name in ServiceInfo
+                    val servicePackageName = resolvedServiceInfo.packageName
+                    val serviceClassName = resolvedServiceInfo.name // This is the fully qualified class name
+
+                    // Check if names are valid before comparing
+                    if (!servicePackageName.isNullOrEmpty() && !serviceClassName.isNullOrEmpty()) {
+                        Log.v("AccessibilityCheck", "Checking against enabled service: Pkg=$servicePackageName, Class=$serviceClassName")
+                        if (servicePackageName == expectedPackageName && serviceClassName == expectedClassName) {
+                            Log.i("AccessibilityCheck", "Service $expectedFlattenedName is ENABLED (via Manager - Name Match).")
+                            return true // Found a match!
+                        }
+                    } else {
+                        Log.w("AccessibilityCheck", "Resolved ServiceInfo has null/empty package or class name for service ID: ${serviceInfo.id}")
+                    }
+                } else {
+                    // Fallback using serviceInfo.id if resolveInfo or serviceInfo is null
+                    val serviceId = serviceInfo.id
+                    if (serviceId != null) {
+                        Log.v("AccessibilityCheck", "ResolveInfo/ServiceInfo was null. Checking against enabled service ID: $serviceId (fallback)")
+                        // Compare the ID string directly against the flattened component name (less reliable but better than contains)
+                        if (serviceId.equals(expectedFlattenedName, ignoreCase = true)) {
+                            Log.w("AccessibilityCheck", "Service $expectedFlattenedName potentially ENABLED (via ID match).")
+                            return true // Found a match via ID fallback
+                        }
+                    }
+                }
+            }
+            // If loop finishes without finding the service via AccessibilityManager
+            Log.d("AccessibilityCheck", "Service $expectedFlattenedName not found in AccessibilityManager list.")
+
+        } else {
+            Log.w("AccessibilityCheck", "AccessibilityManager is null or globally disabled.")
         }
+    } catch (e: Exception) {
+        Log.e("AccessibilityCheck", "Error querying AccessibilityManager", e)
+        // Don't return yet, try the Settings.Secure method
     }
 
+    // --- Method 2: Checking Settings.Secure (Fallback) ---
+    Log.d("AccessibilityCheck", "Trying Settings.Secure method...")
+    try {
+        val enabledServicesSetting = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        )
+        Log.v("AccessibilityCheck", "Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES: $enabledServicesSetting")
+
+        if (!TextUtils.isEmpty(enabledServicesSetting)) {
+            val colonSplitter = TextUtils.SimpleStringSplitter(':')
+            colonSplitter.setString(enabledServicesSetting)
+            while (colonSplitter.hasNext()) {
+                val componentNameString = colonSplitter.next()
+                Log.v("AccessibilityCheck", "Checking component from setting: $componentNameString")
+                // Compare the component string from settings with the expected flattened name
+                if (componentNameString.equals(expectedFlattenedName, ignoreCase = true)) {
+                    Log.i("AccessibilityCheck", "Service $expectedFlattenedName is ENABLED (via Settings.Secure).")
+                    return true // Found a match!
+                }
+            }
+            // If loop finishes without finding the service via Settings.Secure
+            Log.d("AccessibilityCheck", "Service $expectedFlattenedName not found in Settings.Secure list.")
+        } else {
+            Log.d("AccessibilityCheck", "Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES is null or empty.")
+        }
+    } catch (e: Exception) {
+        Log.e("AccessibilityCheck", "Error reading Settings.Secure", e)
+        // Cannot determine state from this method
+    }
+
+    // If neither method found the service as enabled
+    Log.w("AccessibilityCheck", "Service $expectedFlattenedName is DISABLED (checked both methods).")
     return false
 }

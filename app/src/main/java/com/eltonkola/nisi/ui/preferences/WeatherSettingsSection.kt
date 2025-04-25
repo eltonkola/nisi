@@ -73,6 +73,9 @@ fun WeatherSettingsSection(viewmodel: WeatherPreferencesViewModel = hiltViewMode
 
         Text("Saved Location: ${uiState.location?.city}(${uiState.location?.latitude}, ${uiState.location?.longitude})")
         Text("Status: $locationStatus", modifier = Modifier.padding(vertical = 8.dp))
+        Spacer(modifier = Modifier.size(4.dp))
+
+
 
         if (!hasPermission) {
             Button(onClick = { permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION) }) {
@@ -105,9 +108,11 @@ fun WeatherSettingsSection(viewmodel: WeatherPreferencesViewModel = hiltViewMode
             }
         }
 
+        Spacer(modifier = Modifier.size(8.dp))
         Text("Use metric system", style = MaterialTheme.typography.headlineSmall)
         Text("You can use metric or imperial system", style = MaterialTheme.typography.bodyMedium)
 
+        Spacer(modifier = Modifier.size(4.dp))
 
         var metric by remember { mutableStateOf(uiState.metric) }
 
@@ -117,7 +122,7 @@ fun WeatherSettingsSection(viewmodel: WeatherPreferencesViewModel = hiltViewMode
             viewmodel.saveMetricSystem(metric)
         }) {
             Row{
-                Text(if(metric)"Use Metric System" else "Use Metric System")
+                Text(if(metric)"Use Metric System" else "Use Imperial System")
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
                     imageVector = if(metric) iconEarth else iconCircleDollar,
@@ -130,9 +135,10 @@ fun WeatherSettingsSection(viewmodel: WeatherPreferencesViewModel = hiltViewMode
 
         var apiKeyInput by remember { mutableStateOf("") }
 
+        Spacer(modifier = Modifier.size(8.dp))
         Text("Custom api key", style = MaterialTheme.typography.headlineSmall)
         Text("Enter your own private OpenWeatherMap key, you can get a free one at https://api.openweathermap.org", style = MaterialTheme.typography.bodyMedium)
-
+        Spacer(modifier = Modifier.size(4.dp))
         OutlinedTextField(
             value = apiKeyInput,
             onValueChange = { apiKeyInput = it },
