@@ -43,7 +43,9 @@ import tvIcon
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun HomeSectionTabs(navController: NavHostController =  rememberNavController()) {
+fun HomeSectionTabs(
+    navController: NavHostController =  rememberNavController(),
+    ) {
 
     val context = LocalContext.current
 
@@ -103,16 +105,5 @@ fun Context.openSettings() {
         startActivity(intent)
     } catch (e: Exception) {
         Log.e("SettingsLink", "Could not open system settings", e)
-    }
-}
-
-
-@Preview
-@Composable
-fun HomeSectionTabsPreview() {
-    NisiTheme {
-        Box(Modifier.background(Color.DarkGray).padding(16.dp)) {
-            HomeSectionTabs()
-        }
     }
 }

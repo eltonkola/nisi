@@ -1,4 +1,4 @@
-package com.eltonkola.nisi.ui.launcher
+package com.eltonkola.nisi.ui.apps
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -17,8 +17,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class HomeUiState(
-    val favoriteApps: List<AppSettingItem> = emptyList(),
+data class AppsUiState(
     val visibleApps: List<AppSettingItem> = emptyList(),
     val selectedWallpaperIdentifier: String = PrefKeys.DEFAULT_WALLPAPER_IDENTIFIER,
     val isLoading: Boolean = true,
@@ -26,15 +25,14 @@ data class HomeUiState(
 )
 
 @HiltViewModel
-class LauncherViewModel  @Inject constructor(
+class AllAppsViewModel  @Inject constructor(
     private val appRepository: AppRepository,
     private val appPreferenceDao: AppPreferenceDao,
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
-
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(AppsUiState())
+    val uiState: StateFlow<AppsUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -61,16 +59,15 @@ class LauncherViewModel  @Inject constructor(
                 val favorites = filteredSortedVisibleApps.filter { it.isFavorite }
 
                 // Create the final UI State
-                HomeUiState(
-                    favoriteApps = favorites,                    // List of only favorite apps
-                    visibleApps = filteredSortedVisibleApps,     // List of ALL visible apps (includes favs)
+                AppsUiState(
+                    visibleApps = filteredSortedVisibleApps,
                     selectedWallpaperIdentifier = wallpaperId,
                     isLoading = false,
                     error = null
                 )
             }.catch { e ->
                 // Handle errors from either combined flow
-                emit(HomeUiState(isLoading = false, error = "Failed to load home data: ${e.message}"))
+                emit(AppsUiState(isLoading = false, error = "Failed to load home data: ${e.message}"))
             }.collect { state ->
                 _uiState.value = state
             }

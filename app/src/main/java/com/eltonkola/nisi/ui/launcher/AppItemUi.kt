@@ -20,12 +20,13 @@ import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import com.eltonkola.nisi.data.model.App
+import com.eltonkola.nisi.data.model.AppSettingItem
 
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun AppItemUi(
-    app: App,
+    app: AppSettingItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {

@@ -1,42 +1,45 @@
 package com.eltonkola.nisi.ui.launcher
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Text
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.eltonkola.nisi.R
-import com.eltonkola.nisi.data.model.App
-import com.eltonkola.nisi.ui.theme.NisiTheme
-import androidx.hilt.navigation.compose.hiltViewModel
+import com.eltonkola.nisi.data.model.AppSettingItem
 import com.eltonkola.nisi.ui.launcher.widgets.ClockWidget
 import com.eltonkola.nisi.ui.launcher.widgets.weather.WeatherWidget
-
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -45,71 +48,120 @@ fun LauncherScreen(
     navController: NavHostController = rememberNavController()
 ) {
 
-    val context = LocalContext.current
-    val apps by viewModel.apps.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    Box(modifier = Modifier.fillMaxSize()) {
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            // 1. Background Image
-            Image(
-                painter = painterResource(id = R.drawable.offline_wallpaper_1), // Replace
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-
-            // Optional: Gradient Scrim
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.4f)
-                    .align(Alignment.BottomCenter)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))
-                        )
-                    )
-            )
-
-            // Main content column
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 16.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(22.dp))
-
-                ClockWidget(modifier = Modifier)
-                WeatherWidget(modifier = Modifier)
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // 3. Bottom App Bar (using TvLazyRow and ViewModel data)
-                    AppIconRow(
-                        apps = apps, // Pass the observed list of apps
-                        onAppClick = { packageName -> // Handle click event
-                            viewModel.launchApp(context, packageName)
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // 4. Tabs (using BottomTab data)
-                    HomeSectionTabs(navController)
+        when {
+            uiState.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
-        }
 
+            uiState.error != null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Error: ${uiState.error}",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            else -> {
+
+                val context = LocalContext.current
+                LauncherMainUi(
+                    uiState = uiState,
+                    onAppClick = { packageName -> viewModel.launchApp(context, packageName) },
+                    navController = navController,
+                )
+
+            }
+
+
+        }
+    }
+
+}
+
+@Composable
+private fun LauncherMainUi(
+    uiState: HomeUiState,
+    onAppClick: (packageName: String) -> Unit,
+    navController: NavHostController
+){
+    Box(modifier = Modifier.fillMaxSize()) {
+        val context = LocalContext.current
+
+        val wallpaperIdentifier = uiState.selectedWallpaperIdentifier
+        val isOffline = wallpaperIdentifier.startsWith("drawable/")
+        val imageModel = ImageRequest.Builder(context)
+            .data(
+                if (isOffline) {
+                    context.resources.getIdentifier(
+                        wallpaperIdentifier.substringAfter('/'),
+                        wallpaperIdentifier.substringBefore('/'),
+                        context.packageName
+                    ).takeIf { it != 0 } ?: R.drawable.offline_wallpaper_0
+                } else {
+                    wallpaperIdentifier
+                }
+            )
+            .crossfade(true)
+            .build()
+
+        AsyncImage(
+            model = imageModel,
+            contentDescription = "Background Wallpaper",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop // Crop to fill the entire screen
+        )
+
+
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(22.dp))
+
+            ClockWidget(modifier = Modifier)
+            WeatherWidget(modifier = Modifier)
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // 3. Bottom App Bar (using TvLazyRow and ViewModel data)
+                AppIconRow(
+                    apps = uiState.favoriteApps, // Pass the observed list of apps
+                    onAppClick = { packageName -> // Handle click event
+                        onAppClick(packageName)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 4. Tabs (using BottomTab data)
+                HomeSectionTabs(navController)
+            }
+        }
+    }
 }
 
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun AppIconRow(
-    apps: List<App>,
+    apps: List<AppSettingItem>,
     onAppClick: (packageName: String) -> Unit
 ) {
         LazyRow(
@@ -128,31 +180,3 @@ fun AppIconRow(
 
         }
 }
-
-@Preview
-@Composable
-fun ClockWeatherWidgetPreview() {
-    NisiTheme {
-        Box(Modifier.background(Color.DarkGray).padding(16.dp)) {
-            ClockWidget()
-        }
-    }
-}
-
-@Preview
-@Composable
-fun AppIconRowPreview() {
-    val sampleApps = remember {
-        listOf(
-            App("App One", "pkg1", null),
-            App("App Two", "pkg2", null)
-        )
-    }
-    NisiTheme {
-        Box(Modifier.background(Color.DarkGray).padding(16.dp)) {
-            AppIconRow(apps = sampleApps, onAppClick = {})
-        }
-    }
-}
-
-
