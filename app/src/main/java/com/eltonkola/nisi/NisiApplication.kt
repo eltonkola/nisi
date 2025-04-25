@@ -8,6 +8,8 @@ import android.content.IntentFilter
 import android.util.Log
 import com.eltonkola.nisi.data.AppRepository
 import com.eltonkola.nisi.data.SettingsDataStore
+import com.eltonkola.nisi.data.db.AppPreferenceDao
+import com.eltonkola.nisi.data.db.AppSettingsDatabase
 import com.eltonkola.nisi.data.repository.AppRepositoryImpl
 import dagger.Module
 import dagger.Provides
@@ -86,6 +88,18 @@ object AppModule {
     @Singleton
     fun provideSettingsDataStore(@ApplicationContext appContext: Context): SettingsDataStore {
         return SettingsDataStore(appContext)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppSettingsDatabase(@ApplicationContext context: Context): AppSettingsDatabase {
+        return AppSettingsDatabase.getDatabase(context)
+    }
+
+    @Provides
+    @Singleton // DAO lives as long as DB
+    fun provideAppPreferenceDao(database: AppSettingsDatabase): AppPreferenceDao {
+        return database.appPreferenceDao()
     }
 
 }
