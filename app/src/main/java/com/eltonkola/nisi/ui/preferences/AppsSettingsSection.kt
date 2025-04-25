@@ -20,18 +20,8 @@ fun AppsSettingsSection() {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("Apps Settings", style = MaterialTheme.typography.headlineMedium)
         Text("Manage installed applications and permissions.")
-        Button(onClick = {
-            try {
-                // Intent to open Android's application management screen
-                val intent = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS)
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                Log.e("SettingsLink", "Could not open Manage Applications settings", e)
-                // TODO: Show feedback Toast("Could not open app settings")
-            }
-        }) {
-            Text("Manage Applications")
-        }
-        // Add other app-related settings if needed (e.g., default apps, permissions for *this* launcher)
+
+
+
     }
 }
