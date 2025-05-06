@@ -126,13 +126,14 @@ fun AppGrid(
 
 
         LazyVerticalGrid(
+            contentPadding = PaddingValues(vertical = 16.dp, horizontal = 16.dp),
             columns = GridCells.Adaptive(130.dp), // Adjust minSize based on your desired item size
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 48.dp, vertical = 32.dp), // Padding around the grid
-            contentPadding = PaddingValues(bottom = 48.dp), // Extra padding at bottom for better scroll visibility
-            verticalArrangement = Arrangement.spacedBy(24.dp), // Spacing between rows
-            horizontalArrangement = Arrangement.spacedBy(20.dp) // Spacing between columns
+                .padding(horizontal = 32.dp, vertical = 32.dp), // Padding around the grid
+            verticalArrangement = Arrangement.spacedBy(16.dp), // Spacing between rows
+            horizontalArrangement = Arrangement.spacedBy(16.dp) // Spacing between columns
+
         ) {
             items (uiState.visibleApps, key = { it.packageName }) { app ->
                 AppItemUi(

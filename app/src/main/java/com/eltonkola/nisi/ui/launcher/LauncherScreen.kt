@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.vector.ImageVector
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -165,8 +166,8 @@ fun AppIconRow(
 ) {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp, horizontal = 16.dp),
         ) {
 
             itemsIndexed(apps) { index, app ->
@@ -179,3 +180,11 @@ fun AppIconRow(
 
         }
 }
+
+
+data class PopUpMenuItem(
+    val id: String,
+    val name: String,
+    val icon: ImageVector,
+)
+
