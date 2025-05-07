@@ -15,6 +15,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
+import android.widget.Toast
 
 class HomeButtonAccessibilityService : AccessibilityService() {
 
@@ -28,18 +29,24 @@ class HomeButtonAccessibilityService : AccessibilityService() {
         info.flags = info.flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
         serviceInfo = info
         isEnabled = true
+        Log.d(">>>>> HomeButtonAccessibilityService", "OnConnected")
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         // This is required to implement AccessibilityService but we don't need any logic here
+        Log.d(">>>>> HomeButtonAccessibilityService", "onAccessibilityEvent $event")
     }
 
     override fun onInterrupt() {
         // This is required to implement AccessibilityService
+        Log.d(">>>>> HomeButtonAccessibilityService", "OnInterrupt")
     }
 
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (!isEnabled) return false
+
+       // Toast.makeText(applicationContext, "Event key: ${event.keyCode}", Toast.LENGTH_SHORT).show()
+        Log.d(">>>>> HomeButtonAccessibilityService", "Event key: ${event.keyCode}")
 
         // Check if the HOME button is pressed
         if (event.keyCode == KeyEvent.KEYCODE_HOME && event.action == KeyEvent.ACTION_UP) {
@@ -63,6 +70,7 @@ class HomeButtonAccessibilityService : AccessibilityService() {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 intent.addCategory(Intent.CATEGORY_HOME)
                 startActivity(intent)
+                Toast.makeText(applicationContext, "Launching main activity", Toast.LENGTH_SHORT).show()
             }
 
             // Return true to consume the event

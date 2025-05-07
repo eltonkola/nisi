@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
+import com.eltonkola.nisi.data.AppActionsManager
 import com.eltonkola.nisi.data.AppRepository
 import com.eltonkola.nisi.data.SettingsDataStore
 import com.eltonkola.nisi.data.db.AppPreferenceDao
@@ -13,14 +14,18 @@ import com.eltonkola.nisi.data.db.AppSettingsDatabase
 import com.eltonkola.nisi.data.remote.PexelsApiService
 import com.eltonkola.nisi.data.remote.PexelsApiServiceImpl
 import com.eltonkola.nisi.data.repository.AppRepositoryImpl
+import com.eltonkola.nisi.ui.model.AppItemActions
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -80,10 +85,21 @@ class NisiApplication : Application() {
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     @Provides
     @Singleton
     fun provideAppRepository(@ApplicationContext appContext: Context): AppRepository {
         return AppRepositoryImpl(appContext)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppItemActions(
+        appPreferenceDao: AppPreferenceDao,
+        @ApplicationContext appContext: Context
+    ): AppItemActions {
+        return AppActionsManager(appPreferenceDao, appContext, applicationScope)
     }
 
     @Provides

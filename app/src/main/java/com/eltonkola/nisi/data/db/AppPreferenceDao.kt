@@ -13,6 +13,9 @@ interface AppPreferenceDao {
     @Query("SELECT * FROM app_preferences ORDER BY orderIndex ASC")
     fun getAllPreferencesFlow(): Flow<List<AppPreference>>
 
+    @Query("SELECT * FROM app_preferences ORDER BY orderIndex ASC")
+    fun getAllPreferences(): List<AppPreference>
+
     @Query("SELECT * FROM app_preferences WHERE packageName = :packageName")
     suspend fun getPreference(packageName: String): AppPreference?
 

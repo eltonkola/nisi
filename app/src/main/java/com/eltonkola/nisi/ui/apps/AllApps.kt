@@ -1,13 +1,11 @@
 package com.eltonkola.nisi.ui.apps
 
-import android.util.Log
+import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -16,33 +14,50 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.eltonkola.nisi.R
-import com.eltonkola.nisi.data.model.AppSettingItem
 import com.eltonkola.nisi.ui.launcher.AppItemUi
+import com.eltonkola.nisi.ui.model.AppItemActions
+import com.eltonkola.nisi.ui.model.getMenuActions
 
 @Composable
 fun AllApps(
-    viewModel: AllAppsViewModel = hiltViewModel()
+    navController: NavHostController,
+    viewModel: AllAppsViewModel = hiltViewModel(),
 ) {
-
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .onKeyEvent { event ->
+                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_MENU && event.type == KeyEventType.KeyDown) {
+                    navController.popBackStack()
+                    true
+                } else {
+                    false
+                }
+            }
+    ) {
 
         when {
             uiState.isLoading -> {
@@ -66,10 +81,9 @@ fun AllApps(
             }
 
             else -> {
-                val context = LocalContext.current
                 AppGrid(
                     uiState = uiState,
-                    openApp = { packageName -> viewModel.launchApp(context, packageName) }
+                    appItemActions =  viewModel.appItemActions
                 )
             }
 
@@ -83,7 +97,7 @@ fun AllApps(
 @Composable
 fun AppGrid(
     uiState: AppsUiState,
-    openApp: (String) -> Unit
+    appItemActions: AppItemActions
 ) {
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -124,23 +138,23 @@ fun AppGrid(
                 )
         )
 
-
         LazyVerticalGrid(
             contentPadding = PaddingValues(vertical = 16.dp, horizontal = 16.dp),
-            columns = GridCells.Adaptive(130.dp), // Adjust minSize based on your desired item size
+            columns = GridCells.Adaptive(160.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 32.dp), // Padding around the grid
-            verticalArrangement = Arrangement.spacedBy(16.dp), // Spacing between rows
-            horizontalArrangement = Arrangement.spacedBy(16.dp) // Spacing between columns
+                .padding(horizontal = 32.dp, vertical = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
 
         ) {
             items (uiState.visibleApps, key = { it.packageName }) { app ->
+
+                val menuActions = remember(app) { app.getMenuActions(appItemActions, true) }
+
                 AppItemUi(
                     app = app,
-                    onClick = {
-                        openApp(app.packageName)
-                    }
+                    menuItems = menuActions,
                 )
             }
         }

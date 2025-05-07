@@ -15,10 +15,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -36,11 +36,8 @@ import com.eltonkola.nisi.R
 import com.eltonkola.nisi.data.model.AppSettingItem
 import com.eltonkola.nisi.ui.launcher.widgets.ClockWidget
 import com.eltonkola.nisi.ui.launcher.widgets.weather.WeatherWidget
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.vector.ImageVector
+import com.eltonkola.nisi.ui.model.AppItemActions
+import com.eltonkola.nisi.ui.model.getMenuActions
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -76,10 +73,9 @@ fun LauncherScreen(
 
             else -> {
 
-                val context = LocalContext.current
                 LauncherMainUi(
                     uiState = uiState,
-                    onAppClick = { packageName -> viewModel.launchApp(context, packageName) },
+                    appItemActions = viewModel.appItemActions,
                     navController = navController,
                 )
 
@@ -94,7 +90,7 @@ fun LauncherScreen(
 @Composable
 private fun LauncherMainUi(
     uiState: HomeUiState,
-    onAppClick: (packageName: String) -> Unit,
+    appItemActions: AppItemActions,
     navController: NavHostController
 ){
     Box(modifier = Modifier.fillMaxSize()) {
@@ -143,12 +139,10 @@ private fun LauncherMainUi(
                 // 3. Bottom App Bar (using TvLazyRow and ViewModel data)
                 AppIconRow(
                     apps = uiState.favoriteApps, // Pass the observed list of apps
-                    onAppClick = { packageName -> // Handle click event
-                        onAppClick(packageName)
-                    }
+                    appItemActions = appItemActions
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // 4. Tabs (using BottomTab data)
                 HomeSectionTabs(navController)
@@ -162,7 +156,7 @@ private fun LauncherMainUi(
 @Composable
 fun AppIconRow(
     apps: List<AppSettingItem>,
-    onAppClick: (packageName: String) -> Unit
+    appItemActions: AppItemActions
 ) {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
@@ -170,10 +164,14 @@ fun AppIconRow(
             contentPadding = PaddingValues(vertical = 16.dp, horizontal = 16.dp),
         ) {
 
+
             itemsIndexed(apps) { index, app ->
+
+                val menuActions = remember(app) { app.getMenuActions(appItemActions) }
+
                 AppItemUi(
                     app = app,
-                    onClick = { onAppClick(app.packageName) },
+                    menuItems = menuActions,
                     modifier = Modifier
                 )
             }

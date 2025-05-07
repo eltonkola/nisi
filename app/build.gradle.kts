@@ -6,11 +6,10 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
-    kotlin(libs.plugins.kotlin.serialization.get().pluginId).version(libs.versions.serialization) //.apply(false)
-//    kotlin("plugin.serialization") version "1.9.0"
+//    kotlin(libs.plugins.kotlin.serialization.get().pluginId).version(libs.versions.serialization) //.apply(false)
 
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 // Function to safely load properties from local.properties
@@ -53,12 +52,16 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            signingConfig = signingConfigs.getByName("debug")
         }
+
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

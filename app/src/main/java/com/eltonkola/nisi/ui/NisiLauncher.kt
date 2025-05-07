@@ -28,7 +28,7 @@ fun NisiLauncher(
             LauncherScreen(navController = navController)
         }
         composable(Screen.Apps.route) {
-            AllApps()
+            AllApps(navController = navController)
         }
         composable(Screen.Customize.route) {
             TwoPaneSettingsScreen()

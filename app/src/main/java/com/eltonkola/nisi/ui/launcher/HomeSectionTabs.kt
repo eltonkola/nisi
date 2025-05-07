@@ -35,6 +35,7 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Tab
+import androidx.tv.material3.TabDefaults
 import androidx.tv.material3.TabRow
 import androidx.tv.material3.TabRowDefaults
 import androidx.tv.material3.Text
@@ -75,7 +76,7 @@ fun HomeSectionTabs(
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     Box(
-        modifier = Modifier.fillMaxWidth().height(46.dp),
+        modifier = Modifier.fillMaxWidth().height(64.dp),
         contentAlignment = Alignment.Center
     ) {
 
@@ -102,7 +103,12 @@ fun HomeSectionTabs(
                     Tab(
                         selected = index == selectedTabIndex,
                         onFocus = { selectedTabIndex = index },
-                        onClick = { tab.action() }
+                        onClick = { tab.action() },
+                        colors = TabDefaults.pillIndicatorTabColors(
+                            selectedContentColor = Color.Black,
+                            focusedSelectedContentColor = Color.Yellow,
+                            disabledSelectedContentColor = Color.Gray,
+                        ),
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

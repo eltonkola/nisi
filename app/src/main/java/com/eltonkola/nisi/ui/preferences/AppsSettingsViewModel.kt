@@ -7,6 +7,7 @@ import com.eltonkola.nisi.data.AppRepository
 import com.eltonkola.nisi.data.db.AppPreference
 import com.eltonkola.nisi.data.db.AppPreferenceDao
 import com.eltonkola.nisi.data.model.AppSettingItem
+import com.eltonkola.nisi.ui.model.AppItemActions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -23,7 +24,8 @@ data class AppsSettingsUiState(
  @HiltViewModel // Uncomment if using Hilt
 class AppsSettingsViewModel @Inject constructor( // Uncomment @Inject constructor if using Hilt
     private val appRepository: AppRepository, // Inject repository
-    private val appPreferenceDao: AppPreferenceDao // Inject DAO
+    private val appPreferenceDao: AppPreferenceDao, // Inject DAO
+    val appItemActions: AppItemActions
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppsSettingsUiState())
@@ -31,8 +33,6 @@ class AppsSettingsViewModel @Inject constructor( // Uncomment @Inject constructo
 
     init {
         loadAppSettings()
-        // Optionally trigger a refresh from the repository if needed on init
-        // viewModelScope.launch { appRepository.refreshApps() }
     }
 
      fun showActionsForApp(app: AppSettingItem) {
@@ -43,24 +43,18 @@ class AppsSettingsViewModel @Inject constructor( // Uncomment @Inject constructo
          _uiState.update { it.copy(appToShowActionsFor = null) }
      }
 
-     fun toggleFavorite(packageName: String) {
-         updatePreference(packageName) { current ->
-             current.copy(isFavorite = !current.isFavorite)
-         }
+     fun toggleFavorite(app: AppSettingItem) {
+         appItemActions.favorites(app, true)
      }
-
 
      private fun loadAppSettings() {
         viewModelScope.launch {
-            // Combine the flow of installed apps with the flow of saved preferences
+
             appRepository.appsFlow
                 .combine(appPreferenceDao.getAllPreferencesFlow()) { installedApps, preferences ->
-                    // Create a map for quick preference lookup
                     val preferenceMap = preferences.associateBy { it.packageName }
-                    val installedAppMap = installedApps.associateBy { it.packageName }
 
-                    // 1. Create AppSettingItems for all installed apps, using saved preferences or defaults
-                    val installedAppSettings = installedApps.map { app ->
+                  val installedAppSettings = installedApps.map { app ->
                         AppSettingItem.fromApp(app, preferenceMap[app.packageName])
                     }
 
@@ -115,74 +109,27 @@ class AppsSettingsViewModel @Inject constructor( // Uncomment @Inject constructo
         }
     }
 
-    // --- Action Methods ---
+    fun toggleVisibility(app: AppSettingItem) {
+        appItemActions.showHide(app, !app.isVisible)
+    }
 
-    fun toggleVisibility(packageName: String) {
-        updatePreference(packageName) { current ->
-            current.copy(isVisible = !current.isVisible)
+    fun toggleLock(app: AppSettingItem) {
+        appItemActions.lockUnlock(app, !app.isLocked)
+
+    }
+
+    fun moveApp(app: AppSettingItem, direction: MoveDirection) {
+        if(direction == MoveDirection.UP){
+            appItemActions.moveLeft(app)
+        }else{
+            appItemActions.moveRight(app)
         }
     }
 
-    fun toggleLock(packageName: String) {
-        updatePreference(packageName) { current ->
-            current.copy(isLocked = !current.isLocked)
-        }
-    }
-
-    fun moveApp(packageName: String, direction: MoveDirection) {
-        viewModelScope.launch {
-            val currentList = _uiState.value.appSettings.toMutableList()
-            val currentIndex = currentList.indexOfFirst { it.packageName == packageName }
-
-            if (currentIndex == -1) return@launch // App not found
-
-            val targetIndex = when (direction) {
-                MoveDirection.UP -> currentIndex - 1
-                MoveDirection.DOWN -> currentIndex + 1
-            }
-
-            // Check bounds and if the move is possible
-            if (targetIndex < 0 || targetIndex >= currentList.size) {
-                return@launch
-            }
-
-            // Swap items in the list
-            val itemToMove = currentList.removeAt(currentIndex)
-            currentList.add(targetIndex, itemToMove)
-
-            // Update orderIndex for all items and create preferences to save
-            val preferencesToUpdate = currentList.mapIndexed { index, item ->
-                item.copy(orderIndex = index).toAppPreference() // Create AppPreference with new index
-            }
-
-            // Update DAO
-            appPreferenceDao.upsertPreferences(preferencesToUpdate)
-            // Note: The UI will update automatically when the getAllPreferencesFlow emits the new list
-            // For immediate UI feedback (optional), you could update _uiState here, but relying on the flow is cleaner.
-            // _uiState.update { it.copy(appSettings = currentList.mapIndexed { index, item -> item.copy(orderIndex = index) }) }
-        }
-    }
-
-
-    // Helper to update a single preference in the DB
-    private fun updatePreference(packageName: String, updateAction: (AppPreference) -> AppPreference) {
-        viewModelScope.launch {
-            val currentPreference = appPreferenceDao.getPreference(packageName)
-            val currentOrderIndex = currentPreference?.orderIndex ?: (appPreferenceDao.getMaxOrderIndex() + 1) // Get existing or next index
-
-            val defaultPreference = AppPreference(packageName = packageName, orderIndex = currentOrderIndex)
-            val updatedPreference = updateAction(currentPreference ?: defaultPreference)
-
-            appPreferenceDao.upsertPreference(updatedPreference)
-            // UI updates via the Flow automatically
-        }
-    }
 }
 
-// Helper Enum for reordering direction
 enum class MoveDirection { UP, DOWN }
 
-// Helper extension function to convert AppSettingItem back to AppPreference for saving
 fun AppSettingItem.toAppPreference(): AppPreference {
     return AppPreference(
         packageName = this.packageName,

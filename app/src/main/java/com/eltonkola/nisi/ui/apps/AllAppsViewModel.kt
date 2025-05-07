@@ -8,6 +8,7 @@ import com.eltonkola.nisi.data.PrefKeys
 import com.eltonkola.nisi.data.SettingsDataStore
 import com.eltonkola.nisi.data.db.AppPreferenceDao
 import com.eltonkola.nisi.data.model.AppSettingItem
+import com.eltonkola.nisi.ui.model.AppItemActions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +29,8 @@ data class AppsUiState(
 class AllAppsViewModel  @Inject constructor(
     private val appRepository: AppRepository,
     private val appPreferenceDao: AppPreferenceDao,
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsDataStore,
+    val appItemActions: AppItemActions
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppsUiState())
@@ -74,18 +76,5 @@ class AllAppsViewModel  @Inject constructor(
         }
     }
 
-    fun launchApp(context: Context, packageName: String) {
-        val launchIntent = context.packageManager.getLeanbackLaunchIntentForPackage(packageName)
-            ?: context.packageManager.getLaunchIntentForPackage(packageName)
 
-        if (launchIntent != null) {
-            if (launchIntent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(launchIntent)
-            } else {
-                println("No activity found to handle launch intent for $packageName")
-            }
-        } else {
-            println("Could not get launch intent for $packageName")
-        }
-    }
 }

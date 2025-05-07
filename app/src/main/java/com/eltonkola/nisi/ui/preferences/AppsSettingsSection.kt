@@ -44,9 +44,7 @@ fun AppsSettingsSection(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current // Get context if needed for anything else
 
-    // Extract the specific app for the dialog for clarity
     val appForDialog = uiState.appToShowActionsFor
 
     Column(
@@ -95,23 +93,23 @@ fun AppsSettingsSection(
             isLast = isLast,
             onDismissRequest = { viewModel.dismissActionsDialog() },
             onToggleVisibility = {
-                viewModel.toggleVisibility(appForDialog.packageName)
+                viewModel.toggleVisibility(appForDialog)
                 viewModel.dismissActionsDialog() // Dismiss after action
             },
             onToggleLock = {
-                viewModel.toggleLock(appForDialog.packageName)
+                viewModel.toggleLock(appForDialog)
                 viewModel.dismissActionsDialog() // Dismiss after action
             },
             onMoveUp = {
-                viewModel.moveApp(appForDialog.packageName, MoveDirection.UP)
+                viewModel.moveApp(appForDialog, MoveDirection.UP)
                 viewModel.dismissActionsDialog() // Dismiss after action
             },
             onMoveDown = {
-                viewModel.moveApp(appForDialog.packageName, MoveDirection.DOWN)
+                viewModel.moveApp(appForDialog, MoveDirection.DOWN)
                 viewModel.dismissActionsDialog() // Dismiss after action
             },
             onToggleFavorite = {
-                viewModel.toggleFavorite(appForDialog.packageName)
+                viewModel.toggleFavorite(appForDialog)
                 viewModel.dismissActionsDialog() // Dismiss after action
             }
         )
