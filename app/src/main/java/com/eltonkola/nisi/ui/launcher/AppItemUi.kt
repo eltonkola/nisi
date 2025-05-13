@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Border
@@ -59,6 +60,7 @@ fun AppItemUi(
     app: AppSettingItem,
     menuItems: List<AppMenuItem>,
     modifier: Modifier = Modifier,
+    iconsSize: Dp = 180.dp,
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var currentLongPressedApp by remember { mutableStateOf<AppSettingItem?>(null) }
@@ -82,14 +84,15 @@ fun AppItemUi(
 
     Card(
 //        interactionSource = interactionSource,
-        onClick = menuItems.first().onClick,
+        //onClick = menuItems.first().onClick,
+        onClick = {},
         onLongClick = {
             currentLongPressedApp = app
             showMenu = true
             menuItemsInteractable = false
         },
         modifier = modifier
-            .width(180.dp)
+            .width(iconsSize)
             .aspectRatio(CardDefaults.HorizontalImageAspectRatio)
             .onGloballyPositioned { coordinates ->
 

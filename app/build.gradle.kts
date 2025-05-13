@@ -8,6 +8,7 @@ plugins {
 
 //    kotlin(libs.plugins.kotlin.serialization.get().pluginId).version(libs.versions.serialization) //.apply(false)
 
+    alias(libs.plugins.serialization)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
@@ -25,6 +26,7 @@ fun getApiKey(project: Project, propertyName: String): String {
         return properties.getProperty(propertyName, "\"\"")
     }
     // Fallback for CI: Read from environment variable if local.properties doesn't exist or key missing
+
     // Gradle automatically makes environment variables available as project properties
     // Note: env var names often match property names, but can be different if mapped in CI
     return project.findProperty(propertyName)?.toString() ?: "\"\"" // Default to empty string literal if not found anywhere
@@ -52,11 +54,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = false
+//            isMinifyEnabled = true
+//            proguardFiles(
+//                getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
 
             signingConfig = signingConfigs.getByName("debug")
         }
@@ -121,7 +124,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation("androidx.room:room-runtime:2.7.1")
+    implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.hilt.android)

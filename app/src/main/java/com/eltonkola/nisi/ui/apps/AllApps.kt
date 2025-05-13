@@ -51,8 +51,11 @@ fun AllApps(
         modifier = Modifier.fillMaxSize()
             .onKeyEvent { event ->
                 if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_MENU && event.type == KeyEventType.KeyDown) {
-                    navController.popBackStack()
+                    // Handle show lock unlock menu
                     true
+                } else if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_HOME && event.type == KeyEventType.KeyDown) {
+                    navController.popBackStack()
+                true
                 } else {
                     false
                 }

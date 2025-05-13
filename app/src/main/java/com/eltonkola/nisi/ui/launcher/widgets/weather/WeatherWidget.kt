@@ -77,7 +77,10 @@ fun WeatherWidget(
         }
     }
 
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
 
         when {
             isLoading -> {
@@ -86,7 +89,7 @@ fun WeatherWidget(
 
             weatherError != null -> {
                 Text(
-                    text = "Weather unavailable",
+                    text = ".",// Weather unavailable
                     style = TextStyle(
                         fontSize = 24.sp, color =  MaterialTheme.colorScheme.onPrimary,
                         shadow = Shadow(color = Color.Black.copy(alpha = 0.7f), blurRadius = 6f)

@@ -1,4 +1,4 @@
-package com.eltonkola.nisi.ui.preferences
+package com.eltonkola.nisi.ui.preferences.wallpaper
 
 
 import androidx.lifecycle.ViewModel

@@ -1,5 +1,6 @@
 package com.eltonkola.nisi.ui.launcher.widgets
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -31,8 +32,6 @@ fun ClockWidget(
     modifier: Modifier = Modifier
 ) {
 
-    val context = LocalContext.current
-
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
     LaunchedEffect(key1 = true) {
@@ -49,7 +48,10 @@ fun ClockWidget(
     val date = dateFormat.format(Date(currentTime))
     val time = timeFormat.format(Date(currentTime))
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier) {
 
         Text(
             text = date,

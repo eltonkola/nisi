@@ -4,11 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
@@ -130,10 +132,21 @@ private fun LauncherMainUi(
         ) {
             Spacer(modifier = Modifier.height(22.dp))
 
-            ClockWidget(modifier = Modifier)
-            WeatherWidget(modifier = Modifier)
 
-            Spacer(modifier = Modifier.weight(1f))
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ){
+
+                ClockWidget(modifier = Modifier.weight(1f))
+
+                WeatherWidget(modifier = Modifier.weight(1f))
+
+            }
+            Spacer(modifier = Modifier.size(32.dp))
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // 3. Bottom App Bar (using TvLazyRow and ViewModel data)
@@ -172,7 +185,8 @@ fun AppIconRow(
                 AppItemUi(
                     app = app,
                     menuItems = menuActions,
-                    modifier = Modifier
+                    modifier = Modifier,
+                    iconsSize = 160.dp
                 )
             }
 
