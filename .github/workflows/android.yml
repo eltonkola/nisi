@@ -1,4 +1,4 @@
-name: Build and Release Stox Android App
+name: Build and Release Launcher
 
 on:
   workflow_dispatch: # Allows manual triggering
