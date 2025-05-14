@@ -1,26 +1,195 @@
+name: Build and Release Stox Android App
+
+on:
+  workflow_dispatch: # Allows manual triggering
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.1). Do not include "v" prefix.'
+        required: true
+        default: '1.0.0'
+      release_notes:
+        description: 'Specific notes for this release (optional). Will be added to a default message.'
+        required: false
+        default: 'General improvements and bug fixes.'
+
 jobs:
-  build:
+  lint-android:
+    name: Lint Android App
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin' # Or your preferred distribution
-          java-version: '17'     # Or your required JDK version
+          distribution: 'temurin'
+          java-version: 17
+          cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name = 'Make gradlew executable'
+      - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle and Inject Secrets
-        env:
-          # Map GitHub Secrets to the exact property names used in build.gradle.kts
-          # Pass the values *with quotes* to match the format expected by buildConfigField
-          PEXELS_API_KEY: '"${{ secrets.PEXELS_API_KEY_SECRET }}"'
-          OPENWEATHERMAP_API_KEY: '"${{ secrets.OPENWEATHERMAP_API_KEY_SECRET }}"'
-        run: ./gradlew assembleRelease # Or assembleDebug, bundleRelease, etc.
+      - name: Create local.properties with API Key
+        run: |
+          echo "Creating local.properties file..."
+          echo "PEXELS_API_KEY=${{ secrets.PEXELS_API_KEY }}" > local.properties
+          echo "OPENWEATHERMAP_API_KEY=${{ secrets.OPENWEATHERMAP_API_KEY }}" > local.properties
+          echo "File created. Content:"
+          cat local.properties # For debugging, shows the content
+      - name: Run Android Lints
+        run: ./gradlew :app:lint 
 
-      # Add steps for uploading artifacts, running tests etc.
+  build-android:
+    name: Build and Sign Android APK
+    runs-on: ubuntu-latest
+    needs: [lint-android]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: List unsigned APKs (for debugging)
+        run: |
+          echo "Listing contents of app/build/outputs/apk/release:"
+          ls -R app/build/outputs/apk/release || echo "Directory app/build/outputs/apk/release not found or empty after build."
+
+      - name: Setup build tool version variable
+        shell: bash
+        run: |
+          # Attempt to find build tools, sort version-sensitively if possible
+          if command -v sort &> /dev/null && sort --version-sort --help &> /dev/null; then
+            LATEST_BUILD_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | sort -V | tail -n 1)
+          else # Fallback to simple lexical sort if sort -V is not available
+            LATEST_BUILD_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
+          fi
+          echo "Determined latest build tool version: $LATEST_BUILD_TOOL_VERSION"
+          echo "BUILD_TOOL_VERSION_DYNAMIC=$LATEST_BUILD_TOOL_VERSION" >> $GITHUB_ENV
+
+      - name: Sign APK
+        id: sign_apk
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
+          alias: ${{ secrets.ANDROID_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION_DYNAMIC }}
+
+      - name: Verify Signed APK and Prepare Upload Path
+        id: verify_signed_apk
+        run: |
+          signed_apk_path="${{ steps.sign_apk.outputs.signedReleaseFile }}"
+          echo "Signed APK path from signing action: $signed_apk_path"
+          if [ -f "$signed_apk_path" ]; then
+            echo "Signed APK confirmed to exist at: $signed_apk_path"
+            echo "upload_file_path=$signed_apk_path" >> $GITHUB_OUTPUT
+          else
+            echo "::error::Signed APK not found at '$signed_apk_path' (output from sign_apk step)."
+            echo "This can happen if the 'releaseDirectory' or 'BUILD_TOOLS_VERSION' for sign_apk was incorrect or if signing failed silently."
+            echo "BUILD_TOOLS_VERSION used was: ${{ env.BUILD_TOOL_VERSION_DYNAMIC }}"
+            echo "Listing contents of expected directory: app/build/outputs/apk/release/"
+            ls -R app/build/outputs/apk/release/ || echo "Directory app/build/outputs/apk/release/ not found or empty."
+            echo "Re-listing available build-tools versions from /usr/local/lib/android/sdk/build-tools/:"
+            ls -1 /usr/local/lib/android/sdk/build-tools/ || echo "Could not list build-tools directory."
+            exit 1
+          fi
+
+      - name: Upload Signed APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-apk # Artifact name for download later
+          path: ${{ steps.verify_signed_apk.outputs.upload_file_path }}
+          # retention-days: 7 # Optional: how long to keep the artifact
+
+  publish-release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-android]
+    permissions:
+      contents: write # To create releases and upload assets
+    steps:
+      - name: Download Signed APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: signed-apk # Matches upload name
+          path: release-assets/
+
+      - name: List Downloaded Files
+        run: |
+          echo "Listing contents of release-assets/ after download:"
+          ls -R release-assets/
+
+      - name: Set up GitHub CLI
+        run: |
+          type gh > /dev/null 2>&1 || {
+            echo "gh CLI not found, installing..."
+            sudo apt-get update
+            sudo apt-get install -y gh
+          }
+          gh --version
+
+      - name: Create GitHub Release and Upload APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Use inputs if available (workflow_dispatch), otherwise provide fallbacks
+          INPUT_VERSION: ${{ github.event.inputs.version || '0.0.0-default' }}
+          INPUT_RELEASE_NOTES: ${{ github.event.inputs.release_notes || 'No specific notes provided for this automated build.' }}
+        run: |
+          RELEASE_TAG="v${INPUT_VERSION}"
+          RELEASE_NAME="Stox ${RELEASE_TAG}"
+          APK_ASSET_NAME="Stox-${RELEASE_TAG}.apk"
+          
+          RELEASE_BODY=$(cat <<EOF
+          Release of Stox Android App version ${INPUT_VERSION}.
+
+          ${INPUT_RELEASE_NOTES}
+          EOF
+          )
+
+          echo "Creating release for tag: $RELEASE_TAG"
+          echo "Release Name: $RELEASE_NAME"
+          echo "APK Asset Name: $APK_ASSET_NAME"
+          echo "--- Release Body ---"
+          echo "$RELEASE_BODY"
+          echo "--------------------"
+          echo "Expecting APK at: release-assets/app-release-unsigned-signed.apk"
+          
+          # The local path to the downloaded APK
+          LOCAL_APK_FILE_PATH="release-assets/app-release-unsigned-signed.apk"
+
+          if [ ! -f "$LOCAL_APK_FILE_PATH" ]; then
+            echo "::error::APK file not found at $LOCAL_APK_FILE_PATH after download."
+            echo "Actual files in release-assets/:"
+            ls -R release-assets/ # Show what was actually downloaded
+            exit 1
+          fi
+
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$RELEASE_NAME" \
+            --notes "$RELEASE_BODY" \
+            --draft=false \
+            --prerelease=false \
+            "$LOCAL_APK_FILE_PATH#$APK_ASSET_NAME"
+          echo "Release created and APK uploaded."
+
