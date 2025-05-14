@@ -37,10 +37,12 @@ jobs:
       - name: Create local.properties with API Key
         run: |
           echo "Creating local.properties file..."
-          echo "PEXELS_API_KEY=${{ secrets.PEXELS_API_KEY }}" > local.properties
-          echo "OPENWEATHERMAP_API_KEY=${{ secrets.OPENWEATHERMAP_API_KEY }}" > local.properties
+          {
+            printf "PEXELS_API_KEY=%s\n" "${{ secrets.PEXELS_API_KEY }}"
+            printf "OPENWEATHERMAP_API_KEY=%s\n" "${{ secrets.OPENWEATHERMAP_API_KEY }}"
+          } > local.properties
           echo "File created. Content:"
-          cat local.properties # For debugging, shows the content
+          cat local.properties
       - name: Run Android Lints
         run: ./gradlew :app:lint 
 
