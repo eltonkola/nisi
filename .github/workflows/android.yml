@@ -67,7 +67,15 @@ jobs:
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
-
+      - name: Create local.properties with API Key
+        run: |
+          echo "Creating local.properties file..."
+          {
+            printf "PEXELS_API_KEY=%s\n" "${{ secrets.PEXELS_API_KEY }}"
+            printf "OPENWEATHERMAP_API_KEY=%s\n" "${{ secrets.OPENWEATHERMAP_API_KEY }}"
+          } > local.properties
+          echo "File created. Content:"
+          cat local.properties
       - name: Build Release APK
         run: ./gradlew :app:assembleRelease
 
