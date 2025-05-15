@@ -68,6 +68,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Build Release APK
+        run: ./gradlew :app:assembleRelease
+
       - name: List unsigned APKs (for debugging)
         run: |
           echo "Listing contents of app/build/outputs/apk/release:"
