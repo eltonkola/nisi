@@ -47,8 +47,8 @@ android {
         val pexelsKey = getApiKey(project, "PEXELS_API_KEY")
         val weatherKey = getApiKey(project, "OPENWEATHERMAP_API_KEY")
 
-        buildConfigField("String", "PEXELS_API_KEY", pexelsKey)
-        buildConfigField("String", "OPENWEATHERMAP_API_KEY", weatherKey)
+        buildConfigField("String", "PEXELS_API_KEY", "\"$pexelsKey\"")
+        buildConfigField("String", "OPENWEATHERMAP_API_KEY", "\"$weatherKey\"")
 
     }
 
