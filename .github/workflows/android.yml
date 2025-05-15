@@ -96,14 +96,14 @@ jobs:
           echo "Determined latest build tool version: $LATEST_BUILD_TOOL_VERSION"
           echo "BUILD_TOOL_VERSION_DYNAMIC=$LATEST_BUILD_TOOL_VERSION" >> $GITHUB_ENV
 
-      - name: Debug Secrets Presence (Temporary)
-        run: |
-          echo "Checking secrets..."
-          if [ -z "${{ secrets.ANDROID_ALIAS }}" ]; then echo "::warning::ANDROID_ALIAS secret is empty or not being passed."; else echo "ANDROID_ALIAS secret is present."; fi
-          if [ -z "${{ secrets.ANDROID_KEY_STORE_PASSWORD }}" ]; then echo "::warning::ANDROID_KEY_STORE_PASSWORD secret is empty or not being passed."; else echo "ANDROID_KEY_STORE_PASSWORD secret is present."; fi
-          if [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then echo "::warning::ANDROID_KEY_PASSWORD secret is empty or not being passed."; else echo "ANDROID_KEY_PASSWORD secret is present."; fi
-          if [ -z "${{ secrets.ANDROID_SIGNING_KEY }}" ]; then echo "::warning::ANDROID_SIGNING_KEY secret is empty or not being passed."; else echo "ANDROID_SIGNING_KEY secret is present (length: ${#secrets.ANDROID_SIGNING_KEY})."; fi
-          echo "Finished checking secrets."
+      # - name: Debug Secrets Presence (Temporary)
+      #   run: |
+      #     echo "Checking secrets..."
+      #     if [ -z "${{ secrets.ANDROID_ALIAS }}" ]; then echo "::warning::ANDROID_ALIAS secret is empty or not being passed."; else echo "ANDROID_ALIAS secret is present."; fi
+      #     if [ -z "${{ secrets.ANDROID_KEY_STORE_PASSWORD }}" ]; then echo "::warning::ANDROID_KEY_STORE_PASSWORD secret is empty or not being passed."; else echo "ANDROID_KEY_STORE_PASSWORD secret is present."; fi
+      #     if [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then echo "::warning::ANDROID_KEY_PASSWORD secret is empty or not being passed."; else echo "ANDROID_KEY_PASSWORD secret is present."; fi
+      #     if [ -z "${{ secrets.ANDROID_SIGNING_KEY }}" ]; then echo "::warning::ANDROID_SIGNING_KEY secret is empty or not being passed."; else echo "ANDROID_SIGNING_KEY secret is present (length: ${#secrets.ANDROID_SIGNING_KEY})."; fi
+      #     echo "Finished checking secrets."
           
       - name: Sign APK
         id: sign_apk
