@@ -1,5 +1,7 @@
 package com.eltonkola.nisi.ui
 
+import android.annotation.SuppressLint
+import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -17,6 +19,7 @@ sealed class Screen(val route: String) {
     object Customize: Screen("customize_screen")
 }
 
+@SuppressLint("MissingPermission")
 @Composable
 fun NisiLauncher(
 

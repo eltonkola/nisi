@@ -1,5 +1,6 @@
 package com.eltonkola.nisi.ui.preferences
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ enum class SettingsSection(val title: String, val icon: ImageVector) {
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalTvFoundationApi::class)
+@SuppressLint("MissingPermission")
 @Composable
 fun TwoPaneSettingsScreen() {
     var selectedSection by remember { mutableStateOf(SettingsSection.WEATHER) } // Start with Weather
@@ -128,11 +130,12 @@ private fun NavigationPane(
 }
 
 @Composable
+@androidx.annotation.RequiresPermission(allOf = [android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION])
 private fun ContentPane(
     selectedSection: SettingsSection,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier)  {
         when (selectedSection) {
             SettingsSection.WEATHER -> WeatherSettingsSection()
             SettingsSection.APPS -> AppsSettingsSection()
