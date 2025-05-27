@@ -2,4 +2,54 @@
     <string name="app_name">Nisi</string>
     <string name="accessibility_service_description">Enable this service to use this app as your home launcher. This service detects when the home button is pressed and opens this launcher.</string>
 
+
+    <string name="nisi_terms_dialog_title">NISI Launcher: Our Commitment to Your Privacy &amp; Experience</string>
+
+    <string name="nisi_terms_dialog_content">
+        <![CDATA[
+Welcome to NISI Launcher! We believe in transparency, so let\'s clearly outline how we operate. No dense legal jargon here, just straightforward information about your experience with us.
+
+**Your Privacy is Paramount: Your Data Stays on Your Device. Period.**
+
+We want to be crystal clear: NISI Launcher is designed so that your personal information and usage data are **never sent to any external servers.** What happens on your TV, stays on your TV. We don\'t collect it, store it remotely, or share it. Your trust is important to us, and this is a core principle of how we operate.
+
+**Why We Request Certain Permissions (It\'s All for a Better Experience):**
+
+1.  **Location Access (For Accurate Weather, That\'s All!):**
+    *   To provide you with helpful local weather information directly on your NISI screen, we ask for location access.
+    *   This information is used **solely for fetching weather data** for your area. It\'s not used for tracking, advertising, or any other purpose. You can always choose not to grant this, but then the weather feature won\'t be available.
+
+2.  **Accessibility Permission (To Make NISI Your Main Hub):**
+    *   For NISI Launcher to function effectively as your TV\'s primary interface (your home screen/launcher), it requires Accessibility permission. This allows it to seamlessly integrate, display over other apps when needed (like a true launcher), and manage your app navigation smoothly.
+    *   Rest assured, this permission is **strictly used for its intended launcher functions.** We don\'t use it to monitor your activity, access personal content, or anything beyond making your TV experience smoother and more intuitive with NISI as the central point.
+
+**Our Core Commitments to You:**
+
+*   **Zero Tracking:** We don\'t monitor your app usage, browsing habits, or what you watch. Your activity is your own.
+*   **Absolutely No Ads:** We\'re committed to providing a clean, ad-free experience. Your launcher should launch apps, not interrupt you with advertisements.
+*   **User-First Design:** NISI Launcher is built with your experience and privacy as the top priorities. We aim to provide a service that respects you and your data.
+
+**In Short:**
+
+We need location for weather and accessibility to be your go-to home screen. That\'s it. No hidden agendas, no data selling, no funny business. Just a launcher that aims to serve you well.
+
+By proceeding, you acknowledge you\'ve read and understood these terms. We\'ve designed NISI Launcher to put you in control and respect your privacy. If you\'re ready for a cleaner, more private TV experience, let\'s get started!
+        ]]>
+    </string>
+
+
+
+    <string name="accessibility_setup_title">Enable NISI Launcher</string>
+    <string name="accessibility_setup_description">To make NISI Launcher your default home experience and manage app launching, it needs Accessibility permission.This permission is ONLY used to set NISI as your main launcher and intercept the home button.</string>
+    <string name="open_accessibility_settings">Open Accessibility Settings</string>
+    <string name="accessibility_status_enabled">Status: Accessibility Enabled</string>
+    <string name="accessibility_status_disabled">Status: Accessibility Disabled - Please Enable</string>
+    <string name="skip_button">Skip</string>
+
+
+    <string name="apps_screen_title">Your Favorite Apps</string>
+    <string name="apps_screen_description">Select the apps you want to see on your NISI Launcher home screen. You can always change this later in settings.</string>
+    <string name="no_apps_found">No applications found on this device.</string>
+
+
 </resources>

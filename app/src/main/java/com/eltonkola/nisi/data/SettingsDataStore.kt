@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -30,6 +31,7 @@ object PrefKeys {
     val LOCATION_LON = stringPreferencesKey("location_lon")
     val LOCATION_CITY = stringPreferencesKey("location_city")
     val WEATHER_METRIC = booleanPreferencesKey("weather_metric")
+    val ONBOARDED = booleanPreferencesKey("onboarded")
     val API_KEY = stringPreferencesKey("openweathermap_api_key")
     val PIN = stringPreferencesKey("pin")
 
@@ -88,6 +90,19 @@ class SettingsDataStore @Inject constructor(
             _settingsState.value = settings
         }.launchIn(GlobalScope) // Or another appropriate scope
     }
+
+    suspend fun setOnboarded() {
+        appContext.dataStore.edit { settings ->
+            settings[PrefKeys.ONBOARDED] = true
+        }
+    }
+
+    suspend fun getOnboarded(): Boolean {
+        return appContext.dataStore.data.map { preferences ->
+            preferences[PrefKeys.ONBOARDED] == true
+        }.first()
+    }
+
 
     val geocoder = Geocoder(appContext, Locale.getDefault())
 

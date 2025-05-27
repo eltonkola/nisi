@@ -52,7 +52,7 @@ enum class SettingsSection(val title: String, val icon: ImageVector) {
 @SuppressLint("MissingPermission")
 @Composable
 fun TwoPaneSettingsScreen() {
-    var selectedSection by remember { mutableStateOf(SettingsSection.WEATHER) } // Start with Weather
+    var selectedSection by remember { mutableStateOf(SettingsSection.ACCESSIBILITY) } // Start with Weather
 
     Row(
         modifier = Modifier
@@ -60,7 +60,14 @@ fun TwoPaneSettingsScreen() {
             .background(MaterialTheme.colorScheme.surface) // Use theme background
     ) {
         NavigationPane(
-            sections = SettingsSection.entries.toList(), // Get all enum values
+            sections = listOf(
+                SettingsSection.ACCESSIBILITY,
+                SettingsSection.APPS,
+                SettingsSection.PIN,
+                SettingsSection.WEATHER,
+                SettingsSection.WALLPAPER,
+                SettingsSection.ABOUT,
+            ), // Get all enum values
             selectedSection = selectedSection,
             onSectionSelected = { section -> selectedSection = section },
             modifier = Modifier
