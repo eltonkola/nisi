@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -36,6 +37,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.eltonkola.nisi.R
 import com.eltonkola.nisi.data.model.AppSettingItem
+import com.eltonkola.nisi.data.repository.LockState
+import com.eltonkola.nisi.ui.LockUnlockBar
 import com.eltonkola.nisi.ui.launcher.widgets.ClockWidget
 import com.eltonkola.nisi.ui.launcher.widgets.weather.WeatherWidget
 import com.eltonkola.nisi.ui.model.AppItemActions
@@ -49,6 +52,7 @@ fun LauncherScreen(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lockState by viewModel.lockState.collectAsStateWithLifecycle()
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -79,6 +83,8 @@ fun LauncherScreen(
                     uiState = uiState,
                     appItemActions = viewModel.appItemActions,
                     navController = navController,
+                    onUnlock = viewModel::showUnlockScreen,
+                    lockState = lockState
                 )
 
             }
@@ -92,6 +98,8 @@ fun LauncherScreen(
 @Composable
 private fun LauncherMainUi(
     uiState: HomeUiState,
+    lockState: LockState,
+    onUnlock: () -> Unit,
     appItemActions: AppItemActions,
     navController: NavHostController
 ){
@@ -152,7 +160,9 @@ private fun LauncherMainUi(
                 // 3. Bottom App Bar (using TvLazyRow and ViewModel data)
                 AppIconRow(
                     apps = uiState.favoriteApps, // Pass the observed list of apps
-                    appItemActions = appItemActions
+                    appItemActions = appItemActions,
+                    onUnlock = onUnlock,
+                    lockState = lockState
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -161,6 +171,8 @@ private fun LauncherMainUi(
                 HomeSectionTabs(navController)
             }
         }
+
+        LockUnlockBar()
     }
 }
 
@@ -169,7 +181,9 @@ private fun LauncherMainUi(
 @Composable
 fun AppIconRow(
     apps: List<AppSettingItem>,
-    appItemActions: AppItemActions
+    appItemActions: AppItemActions,
+    lockState: LockState,
+    onUnlock: () -> Unit
 ) {
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
@@ -180,8 +194,9 @@ fun AppIconRow(
 
             itemsIndexed(apps) { index, app ->
 
-                //TODO - do we want unlock features here?
-                val menuActions = remember(app) { app.getMenuActions(appItemActions, false, true, {}) }
+                val menuActions = remember(app, lockState.locked) {
+                    app.getMenuActions(appItemActions, false, lockState.locked == true || lockState.locked == null, onUnlock)
+                }
 
                 AppItemUi(
                     app = app,

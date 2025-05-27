@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -29,9 +30,9 @@ sealed class Screen(val route: String) {
 @SuppressLint("MissingPermission")
 @Composable
 fun NisiLauncher(
-    navViewModel: NavViewModel = hiltViewModel()
+    navViewModel: NavViewModel = hiltViewModel(),
+    navController: NavHostController = rememberNavController()
 ) {
-    val navController = rememberNavController()
 
     val uiState = navViewModel.uiState.collectAsState()
 
