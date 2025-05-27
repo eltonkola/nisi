@@ -14,7 +14,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -29,12 +31,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.eltonkola.nisi.R
+import com.eltonkola.nisi.data.repository.LockState
+import com.eltonkola.nisi.ui.LockUnlockBar
+import com.eltonkola.nisi.ui.PinEntryDialog
 import com.eltonkola.nisi.ui.launcher.AppItemUi
 import com.eltonkola.nisi.ui.model.AppItemActions
 import com.eltonkola.nisi.ui.model.getMenuActions
@@ -46,14 +50,17 @@ fun AllApps(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lockState by viewModel.lockState.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier.fillMaxSize()
             .onKeyEvent { event ->
-                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_MENU && event.type == KeyEventType.KeyDown) {
-                    // Handle show lock unlock menu
-                    true
-                } else if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_HOME && event.type == KeyEventType.KeyDown) {
+//                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_MENU && event.type == KeyEventType.KeyDown) {
+//                    // Handle show lock unlock menu
+//                    true
+//                } else
+
+                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_HOME && event.type == KeyEventType.KeyDown) {
                     navController.popBackStack()
                 true
                 } else {
@@ -86,11 +93,18 @@ fun AllApps(
             else -> {
                 AppGrid(
                     uiState = uiState,
-                    appItemActions =  viewModel.appItemActions
+                    appItemActions =  viewModel.appItemActions,
+                    lockState = lockState,
+                    onUnlock = {
+                        viewModel.showUnlockScreen()
+                    },
                 )
             }
 
         }
+
+        LockUnlockBar()
+
     }
 
 }
@@ -100,7 +114,9 @@ fun AllApps(
 @Composable
 fun AppGrid(
     uiState: AppsUiState,
-    appItemActions: AppItemActions
+    lockState: LockState,
+    appItemActions: AppItemActions,
+    onUnlock: () -> Unit
 ) {
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -153,7 +169,9 @@ fun AppGrid(
         ) {
             items (uiState.visibleApps, key = { it.packageName }) { app ->
 
-                val menuActions = remember(app) { app.getMenuActions(appItemActions, true) }
+                val menuActions = remember(app, lockState.locked) {
+                    app.getMenuActions(appItemActions, true, lockState.locked == true || lockState.locked == null, onUnlock)
+                }
 
                 AppItemUi(
                     app = app,

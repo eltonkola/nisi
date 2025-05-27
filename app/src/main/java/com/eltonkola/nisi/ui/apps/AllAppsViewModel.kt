@@ -1,6 +1,5 @@
 package com.eltonkola.nisi.ui.apps
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.eltonkola.nisi.data.AppRepository
@@ -8,6 +7,7 @@ import com.eltonkola.nisi.data.PrefKeys
 import com.eltonkola.nisi.data.SettingsDataStore
 import com.eltonkola.nisi.data.db.AppPreferenceDao
 import com.eltonkola.nisi.data.model.AppSettingItem
+import com.eltonkola.nisi.data.repository.UnlockManager
 import com.eltonkola.nisi.ui.model.AppItemActions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +22,7 @@ data class AppsUiState(
     val visibleApps: List<AppSettingItem> = emptyList(),
     val selectedWallpaperIdentifier: String = PrefKeys.DEFAULT_WALLPAPER_IDENTIFIER,
     val isLoading: Boolean = true,
-    val error: String? = null,
+    val error: String? = null
 )
 
 @HiltViewModel
@@ -30,11 +30,20 @@ class AllAppsViewModel  @Inject constructor(
     private val appRepository: AppRepository,
     private val appPreferenceDao: AppPreferenceDao,
     private val settingsDataStore: SettingsDataStore,
-    val appItemActions: AppItemActions
+    val appItemActions: AppItemActions,
+    private val unlockManager: UnlockManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppsUiState())
     val uiState: StateFlow<AppsUiState> = _uiState.asStateFlow()
+
+
+    val lockState = unlockManager.uiState
+
+    fun showUnlockScreen() {
+        unlockManager.showUnlockScreen()
+    }
+
 
     init {
         viewModelScope.launch {
@@ -53,7 +62,8 @@ class AllAppsViewModel  @Inject constructor(
                     }.sortedWith(compareBy({ it.orderIndex }, { it.name.lowercase() })) // Sort all visible apps
                 },
                 // Flow 2: Selected wallpaper identifier
-                settingsDataStore.selectedWallpaperIdentifierFlow
+                settingsDataStore.selectedWallpaperIdentifierFlow,
+
             ) { filteredSortedVisibleApps, wallpaperId -> // Renamed for clarity
 
                 // --- Partition the visible apps into favorites and non-favorites ---
@@ -75,6 +85,5 @@ class AllAppsViewModel  @Inject constructor(
             }
         }
     }
-
 
 }

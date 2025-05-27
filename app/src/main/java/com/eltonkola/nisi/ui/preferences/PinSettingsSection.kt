@@ -43,7 +43,7 @@ fun PinSettingsSection(
     var passwordVisible by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.padding(16.dp)) {
-        Text("Pin", style = MaterialTheme.typography.headlineMedium)
+        Text("Pin $pin", style = MaterialTheme.typography.headlineMedium)
 
         Text("Top open settings and locked apps, you should set a pin. Particularly useful if you have kids, and want to limit apps like youtube.", style = MaterialTheme.typography.bodyLarge)
 
@@ -77,15 +77,15 @@ fun PinSettingsSection(
 
 
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                cursorColor = Color.White,
-                focusedBorderColor = Color.White,
-                unfocusedBorderColor = Color.Gray,
-                focusedLabelColor = Color.White,
-                unfocusedLabelColor = Color.White
-            ),
+//            colors = OutlinedTextFieldDefaults.colors(
+//                focusedTextColor = Color.White,
+//                unfocusedTextColor = Color.White,
+//                cursorColor = Color.White,
+//                focusedBorderColor = Color.White,
+//                unfocusedBorderColor = Color.Gray,
+//                focusedLabelColor = Color.White,
+//                unfocusedLabelColor = Color.White
+//            ),
             leadingIcon = {
                 Icon(imageVector = lockIcon, contentDescription = null)
             }

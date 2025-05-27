@@ -14,6 +14,7 @@ import com.eltonkola.nisi.data.db.AppSettingsDatabase
 import com.eltonkola.nisi.data.remote.PexelsApiService
 import com.eltonkola.nisi.data.remote.PexelsApiServiceImpl
 import com.eltonkola.nisi.data.repository.AppRepositoryImpl
+import com.eltonkola.nisi.data.repository.UnlockManager
 import com.eltonkola.nisi.ui.model.AppItemActions
 import dagger.Module
 import dagger.Provides
@@ -107,6 +108,13 @@ object AppModule {
     fun providePexelsApiService(): PexelsApiService {
         return PexelsApiServiceImpl()
     }
+
+    @Provides
+    @Singleton
+    fun provideUnlockManager(settingsDataStore: SettingsDataStore): UnlockManager {
+        return UnlockManager(settingsDataStore, applicationScope)
+    }
+
 
     @Provides
     @Singleton

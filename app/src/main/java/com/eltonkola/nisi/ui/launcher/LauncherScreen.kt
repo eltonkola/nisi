@@ -180,7 +180,8 @@ fun AppIconRow(
 
             itemsIndexed(apps) { index, app ->
 
-                val menuActions = remember(app) { app.getMenuActions(appItemActions) }
+                //TODO - do we want unlock features here?
+                val menuActions = remember(app) { app.getMenuActions(appItemActions, false, true, {}) }
 
                 AppItemUi(
                     app = app,
@@ -192,11 +193,4 @@ fun AppIconRow(
 
         }
 }
-
-
-data class PopUpMenuItem(
-    val id: String,
-    val name: String,
-    val icon: ImageVector,
-)
 

@@ -6,8 +6,6 @@ import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.lightColorScheme
 
 
 val primaryColor = Color(0xFF121212)
@@ -24,15 +22,16 @@ val tertiaryColor = Color(0xFFE0E0E0)
 fun NisiTheme(
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = lightColorScheme(
-            primary = primaryColor,
-            secondary = secondaryColor,
-            tertiary = tertiaryColor
-        )
+    val colorScheme = androidx.compose.material3.lightColorScheme(
+        onPrimaryContainer = primaryColor,
+        onSecondaryContainer = secondaryColor,
+        onTertiaryContainer = tertiaryColor,
+        onErrorContainer = Color.Red,
+    )
 
     MaterialExpressiveTheme(
-//        colorScheme = colorScheme,
-//        typography = Typography,
+        colorScheme = colorScheme,
+       // typography = Typography,
         content = content,
         motionScheme = MotionScheme.expressive(),
     )

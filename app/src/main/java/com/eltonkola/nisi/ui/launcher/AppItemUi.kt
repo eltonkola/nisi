@@ -2,6 +2,7 @@ package com.eltonkola.nisi.ui.launcher
 
 import android.R.attr.onClick
 import android.util.Log
+import android.view.KeyEvent
 import android.view.MenuItem
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -33,6 +34,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
@@ -93,6 +97,16 @@ fun AppItemUi(
         },
         modifier = modifier
             .width(iconsSize)
+            .onKeyEvent { event ->
+                if (event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_MENU && event.type == KeyEventType.KeyDown) {
+                    currentLongPressedApp = app
+                    showMenu = true
+                    menuItemsInteractable = false
+                    true
+                } else {
+                        false
+                }
+            }
             .aspectRatio(CardDefaults.HorizontalImageAspectRatio)
             .onGloballyPositioned { coordinates ->
 

@@ -162,11 +162,16 @@ class SettingsDataStore @Inject constructor(
             preferences[PrefKeys.SELECTED_WALLPAPER_KEY] ?: PrefKeys.DEFAULT_WALLPAPER_IDENTIFIER
         }
 
+    val pinFlow: Flow<String?> = appContext.dataStore.data
+        .map { preferences ->
+            preferences[PrefKeys.PIN]
+        }
 
     suspend fun saveSelectedWallpaperIdentifier(identifier: String) {
         appContext.dataStore.edit { settings ->
             settings[PrefKeys.SELECTED_WALLPAPER_KEY] = identifier
         }
     }
+
 
 }

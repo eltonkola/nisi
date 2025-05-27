@@ -13,7 +13,9 @@ import iconDelete
 import iconEyeOff
 import iconHeart
 import iconHeartOff
+import iconUnlock
 import infoIcon
+import lockIcon
 
 interface AppItemActions {
     fun launch(item: AppSettingItem)
@@ -34,7 +36,10 @@ data class AppMenuItem(
 )
 
 
-fun AppSettingItem.getMenuActions(actions: AppItemActions, allApps: Boolean = false, unlocked: Boolean = false): List<AppMenuItem> {
+fun AppSettingItem.getMenuActions(actions: AppItemActions,
+                                  allApps: Boolean,
+                                  locked: Boolean,
+                                  onUnlock: () -> Unit): List<AppMenuItem> {
     //unlocked app can do everything, locked app can only do a couple of things
     val open = AppMenuItem(
         title = "Open ${this.name}",
@@ -45,6 +50,12 @@ fun AppSettingItem.getMenuActions(actions: AppItemActions, allApps: Boolean = fa
         title = "Information",
         icon = infoIcon,
         onClick = { actions.info(this) }
+    )
+
+    val unlock = AppMenuItem(
+        title = "Unlock for more options",
+        icon = iconUnlock,
+        onClick = onUnlock
     )
 
     val moveLeft = AppMenuItem(
@@ -83,10 +94,11 @@ fun AppSettingItem.getMenuActions(actions: AppItemActions, allApps: Boolean = fa
         onClick = { actions.showHide(this, false) }
     )
 
-    return if(unlocked){
+    return if(locked){
         listOf(
             open,
             info,
+            unlock
         )
     }else{
         if(allApps){

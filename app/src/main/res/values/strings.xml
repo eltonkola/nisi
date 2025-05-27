@@ -51,5 +51,6 @@ By proceeding, you acknowledge you\'ve read and understood these terms. We\'ve d
     <string name="apps_screen_description">Select the apps you want to see on your NISI Launcher home screen. You can always change this later in settings.</string>
     <string name="no_apps_found">No applications found on this device.</string>
 
+    <string name="pin_dialog_default_description">Please enter your PIN to continue.</string>
 
 </resources>
