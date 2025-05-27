@@ -194,10 +194,10 @@ jobs:
           echo "--- Release Body ---"
           echo "$RELEASE_BODY"
           echo "--------------------"
-          echo "Expecting APK at: release-assets/app-release-unsigned-signed.apk"
+          echo "Expecting APK at: release-assets/app-release-signed.apkk"
           
           # The local path to the downloaded APK
-          LOCAL_APK_FILE_PATH="release-assets/app-release-unsigned-signed.apk"
+          LOCAL_APK_FILE_PATH="release-assets/app-release-signed.apk"
 
           if [ ! -f "$LOCAL_APK_FILE_PATH" ]; then
             echo "::error::APK file not found at $LOCAL_APK_FILE_PATH after download."
