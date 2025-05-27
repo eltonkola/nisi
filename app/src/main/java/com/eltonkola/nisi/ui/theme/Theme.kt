@@ -1,11 +1,12 @@
 package com.eltonkola.nisi.ui.theme
 
-import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.darkColorScheme
 import androidx.tv.material3.lightColorScheme
 
 
@@ -18,20 +19,21 @@ val tertiaryColor = Color(0xFFE0E0E0)
 //val tertiaryColor = Color(0xFF038ACA)
 
 
-@OptIn(ExperimentalTvMaterial3Api::class)
+@OptIn(ExperimentalTvMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NisiTheme(
     content: @Composable () -> Unit,
 ) {
     val colorScheme = lightColorScheme(
-//            primary = primaryColor,
-//            secondary = secondaryColor,
-//            tertiary = tertiaryColor
+            primary = primaryColor,
+            secondary = secondaryColor,
+            tertiary = tertiaryColor
         )
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+    MaterialExpressiveTheme(
+//        colorScheme = colorScheme,
+//        typography = Typography,
+        content = content,
+        motionScheme = MotionScheme.expressive(),
     )
 }

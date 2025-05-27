@@ -1,10 +1,8 @@
 package com.eltonkola.nisi.ui
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,12 +12,10 @@ import androidx.navigation.compose.rememberNavController
 import com.eltonkola.nisi.data.SettingsDataStore
 import com.eltonkola.nisi.ui.apps.AllApps
 import com.eltonkola.nisi.ui.landing.LandingNavigation
-import com.eltonkola.nisi.ui.landing.WelcomeScreen
 import com.eltonkola.nisi.ui.launcher.LauncherScreen
 import com.eltonkola.nisi.ui.preferences.TwoPaneSettingsScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
