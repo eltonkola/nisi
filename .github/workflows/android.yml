@@ -16,7 +16,6 @@ jobs:
   lint-android:
     name: Lint Android App
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,22 +33,25 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Create local.properties with API Key
+      - name: Create local.properties with API Keys
         run: |
           echo "Creating local.properties file..."
           {
             printf "PEXELS_API_KEY=%s\n" "${{ secrets.PEXELS_API_KEY }}"
             printf "OPENWEATHERMAP_API_KEY=%s\n" "${{ secrets.OPENWEATHERMAP_API_KEY }}"
           } > local.properties
-          echo "File created. Content:"
-          cat local.properties
+          echo "local.properties created."
+
       - name: Run Android Lints
-        run: ./gradlew :app:lint 
+        run: ./gradlew :app:lint
 
   build-android:
     name: Build and Sign Android APK
     runs-on: ubuntu-latest
-    needs: [lint-android]
+    needs: [lint-android] # Depends on successful linting
+    outputs: # Define output for the APK path
+      apk_name: ${{ steps.rename_apk.outputs.apk_name }}
+      apk_path: ${{ steps.rename_apk.outputs.apk_path }}
 
     steps:
       - name: Checkout repository
@@ -67,22 +69,18 @@ jobs:
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
-      - name: Create local.properties with API Key
+
+      - name: Create local.properties with API Keys
         run: |
           echo "Creating local.properties file..."
           {
             printf "PEXELS_API_KEY=%s\n" "${{ secrets.PEXELS_API_KEY }}"
             printf "OPENWEATHERMAP_API_KEY=%s\n" "${{ secrets.OPENWEATHERMAP_API_KEY }}"
           } > local.properties
-          echo "File created. Content:"
-          cat local.properties
+          echo "local.properties created."
+
       - name: Build Release APK
         run: ./gradlew :app:assembleRelease
-
-      - name: List unsigned APKs (for debugging)
-        run: |
-          echo "Listing contents of app/build/outputs/apk/release:"
-          ls -R app/build/outputs/apk/release || echo "Directory app/build/outputs/apk/release not found or empty after build."
 
       - name: Setup build tool version variable
         shell: bash
@@ -96,15 +94,6 @@ jobs:
           echo "Determined latest build tool version: $LATEST_BUILD_TOOL_VERSION"
           echo "BUILD_TOOL_VERSION_DYNAMIC=$LATEST_BUILD_TOOL_VERSION" >> $GITHUB_ENV
 
-      # - name: Debug Secrets Presence (Temporary)
-      #   run: |
-      #     echo "Checking secrets..."
-      #     if [ -z "${{ secrets.ANDROID_ALIAS }}" ]; then echo "::warning::ANDROID_ALIAS secret is empty or not being passed."; else echo "ANDROID_ALIAS secret is present."; fi
-      #     if [ -z "${{ secrets.ANDROID_KEY_STORE_PASSWORD }}" ]; then echo "::warning::ANDROID_KEY_STORE_PASSWORD secret is empty or not being passed."; else echo "ANDROID_KEY_STORE_PASSWORD secret is present."; fi
-      #     if [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then echo "::warning::ANDROID_KEY_PASSWORD secret is empty or not being passed."; else echo "ANDROID_KEY_PASSWORD secret is present."; fi
-      #     if [ -z "${{ secrets.ANDROID_SIGNING_KEY }}" ]; then echo "::warning::ANDROID_SIGNING_KEY secret is empty or not being passed."; else echo "ANDROID_SIGNING_KEY secret is present (length: ${#secrets.ANDROID_SIGNING_KEY})."; fi
-      #     echo "Finished checking secrets."
-          
       - name: Sign APK
         id: sign_apk
         uses: r0adkll/sign-android-release@v1
@@ -117,46 +106,47 @@ jobs:
         env:
           BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION_DYNAMIC }}
 
-      - name: Verify Signed APK and Prepare Upload Path
-        id: verify_signed_apk
+      - name: Rename Signed APK and Set Output
+        id: rename_apk
         run: |
-          signed_apk_path="${{ steps.sign_apk.outputs.signedReleaseFile }}"
-          echo "Signed APK path from signing action: $signed_apk_path"
-          if [ -f "$signed_apk_path" ]; then
-            echo "Signed APK confirmed to exist at: $signed_apk_path"
-            echo "upload_file_path=$signed_apk_path" >> $GITHUB_OUTPUT
-          else
-            echo "::error::Signed APK not found at '$signed_apk_path' (output from sign_apk step)."
-            echo "This can happen if the 'releaseDirectory' or 'BUILD_TOOLS_VERSION' for sign_apk was incorrect or if signing failed silently."
-            echo "BUILD_TOOLS_VERSION used was: ${{ env.BUILD_TOOL_VERSION_DYNAMIC }}"
-            echo "Listing contents of expected directory: app/build/outputs/apk/release/"
-            ls -R app/build/outputs/apk/release/ || echo "Directory app/build/outputs/apk/release/ not found or empty."
-            echo "Re-listing available build-tools versions from /usr/local/lib/android/sdk/build-tools/:"
-            ls -1 /usr/local/lib/android/sdk/build-tools/ || echo "Could not list build-tools directory."
+          original_apk_path="${{ steps.sign_apk.outputs.signedReleaseFile }}"
+          apk_version="${{ github.event.inputs.version }}"
+          new_apk_name="Stox-${apk_version}.apk"
+          new_apk_path="app/build/outputs/apk/release/${new_apk_name}" # Define full path
+
+          if [ ! -f "$original_apk_path" ]; then
+            echo "::error::Original signed APK not found at '$original_apk_path'."
             exit 1
           fi
+          
+          mv "$original_apk_path" "$new_apk_path"
+          echo "Renamed APK to $new_apk_name at $new_apk_path"
+          
+          echo "apk_name=$new_apk_name" >> $GITHUB_OUTPUT
+          echo "apk_path=$new_apk_path" >> $GITHUB_OUTPUT
+
 
       - name: Upload Signed APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: signed-apk # Artifact name for download later
-          path: ${{ steps.verify_signed_apk.outputs.upload_file_path }}
-          # retention-days: 7 # Optional: how long to keep the artifact
+          name: signed-apk-${{ github.event.inputs.version }} # Unique artifact name
+          path: ${{ steps.rename_apk.outputs.apk_path }}
+          if-no-files-found: error # Fail if APK not found
 
   publish-release:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-android]
+    needs: [build-android] # Depends on successful build and sign
     permissions:
       contents: write # To create releases and upload assets
     steps:
       - name: Download Signed APK Artifact
         uses: actions/download-artifact@v4
         with:
-          name: signed-apk # Matches upload name
-          path: release-assets/
+          name: signed-apk-${{ github.event.inputs.version }} # Matches unique upload name
+          path: release-assets/ # APK will be downloaded into this directory
 
-      - name: List Downloaded Files
+      - name: List Downloaded Files (for debugging)
         run: |
           echo "Listing contents of release-assets/ after download:"
           ls -R release-assets/
@@ -164,54 +154,52 @@ jobs:
       - name: Set up GitHub CLI
         run: |
           type gh > /dev/null 2>&1 || {
-            echo "gh CLI not found, installing..."
-            sudo apt-get update
-            sudo apt-get install -y gh
+            echo "gh CLI not found, attempting to install..."
+            sudo apt-get update && sudo apt-get install -y gh
           }
           gh --version
 
       - name: Create GitHub Release and Upload APK
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Use inputs if available (workflow_dispatch), otherwise provide fallbacks
-          INPUT_VERSION: ${{ github.event.inputs.version || '0.0.0-default' }}
-          INPUT_RELEASE_NOTES: ${{ github.event.inputs.release_notes || 'No specific notes provided for this automated build.' }}
+          VERSION_FROM_INPUT: ${{ github.event.inputs.version }}
+          NOTES_FROM_INPUT: ${{ github.event.inputs.release_notes }}
+          # Get APK name from the build job's output
+          DOWNLOADED_APK_NAME: ${{ needs.build-android.outputs.apk_name }}
         run: |
-          RELEASE_TAG="v${INPUT_VERSION}"
+          RELEASE_TAG="v${VERSION_FROM_INPUT}"
           RELEASE_NAME="Stox ${RELEASE_TAG}"
-          APK_ASSET_NAME="Stox-${RELEASE_TAG}.apk"
           
           RELEASE_BODY=$(cat <<EOF
-          Release of Stox Android App version ${INPUT_VERSION}.
+          Release of Stox Android App version ${VERSION_FROM_INPUT}.
 
-          ${INPUT_RELEASE_NOTES}
+          ${NOTES_FROM_INPUT}
           EOF
           )
 
           echo "Creating release for tag: $RELEASE_TAG"
           echo "Release Name: $RELEASE_NAME"
-          echo "APK Asset Name: $APK_ASSET_NAME"
+          echo "Expected APK Name (from build job output): $DOWNLOADED_APK_NAME"
           echo "--- Release Body ---"
           echo "$RELEASE_BODY"
           echo "--------------------"
-          echo "Expecting APK at: release-assets/app-release-signed.apkk"
           
-          # The local path to the downloaded APK
-          LOCAL_APK_FILE_PATH="release-assets/app-release-signed.apk"
+          LOCAL_APK_FILE_PATH="release-assets/${DOWNLOADED_APK_NAME}"
 
           if [ ! -f "$LOCAL_APK_FILE_PATH" ]; then
-            echo "::error::APK file not found at $LOCAL_APK_FILE_PATH after download."
-            echo "Actual files in release-assets/:"
-            ls -R release-assets/ # Show what was actually downloaded
+            echo "::error::APK file not found at '$LOCAL_APK_FILE_PATH' after download."
+            echo "Ensure the artifact download path and the APK name from build job output are correct."
+            echo "Current files in release-assets/:"
+            ls -R release-assets/
             exit 1
           fi
 
+          # The asset path for gh release create should be "localFilePath#desiredAssetNameOnRelease"
           gh release create "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --title "$RELEASE_NAME" \
             --notes "$RELEASE_BODY" \
             --draft=false \
             --prerelease=false \
-            "$LOCAL_APK_FILE_PATH#$APK_ASSET_NAME"
-          echo "Release created and APK uploaded."
-
+            "${LOCAL_APK_FILE_PATH}#${DOWNLOADED_APK_NAME}" # Uploads file with its existing name as the asset name
+          echo "Release created and APK uploaded as ${DOWNLOADED_APK_NAME}."
